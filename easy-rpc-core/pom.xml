@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <artifactId>easy-rpc</artifactId>
+        <groupId>com.shaogezhu</groupId>
+        <version>1.0-SNAPSHOT</version>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>easy-rpc-core</artifactId>
+
+    <properties>
+        <netty.version>4.1.6.Final</netty.version>
+        <fastjson.version>1.2.29</fastjson.version>
+        <jboss-marshalling-river.version>1.4.11.Final</jboss-marshalling-river.version>
+        <jboss-marshalling-serial.version>1.4.11.Final</jboss-marshalling-serial.version>
+        <slf4j-api.version>1.7.13</slf4j-api.version>
+        <javassist.version>3.21.0-GA</javassist.version>
+    </properties>
+
+    <dependencies>
+
+        <dependency>
+            <groupId>org.javassist</groupId>
+            <artifactId>javassist</artifactId>
+            <version>${javassist.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>io.netty</groupId>
+            <artifactId>netty-all</artifactId>
+            <version>${netty.version}</version>
+        </dependency>
+
+        <dependency>
+            <groupId>org.slf4j</groupId>
+            <artifactId>slf4j-api</artifactId>
+            <version>${slf4j-api.version}</version>
+        </dependency>
+
+        <!--fastjson序列化工具-->
+        <dependency>
+            <groupId>com.alibaba</groupId>
+            <artifactId>fastjson</artifactId>
+            <version>${fastjson.version}</version>
+        </dependency>
+
+        <!--JDK自带的序列化 接收方工具-->
+        <dependency>
+            <groupId>org.jboss.marshalling</groupId>
+            <artifactId>jboss-marshalling-river</artifactId>
+            <version>${jboss-marshalling-river.version}</version>
+        </dependency>
+
+        <!--JDK自带的序列化 处理工具-->
+        <dependency>
+            <groupId>org.jboss.marshalling</groupId>
+            <artifactId>jboss-marshalling-serial</artifactId>
+            <version>${jboss-marshalling-serial.version}</version>
+        </dependency>
+
+    </dependencies>
+
+</project>
