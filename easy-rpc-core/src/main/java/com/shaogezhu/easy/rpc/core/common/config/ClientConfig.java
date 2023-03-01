@@ -7,23 +7,33 @@ package com.shaogezhu.easy.rpc.core.common.config;
  */
 public class ClientConfig {
 
-    private Integer port;
+    private String registerAddr;
 
-    private String serverAddr;
+    private String applicationName;
 
-    public String getServerAddr() {
-        return serverAddr;
+    private String proxyType;
+
+    public String getRegisterAddr() {
+        return registerAddr;
     }
 
-    public void setServerAddr(String serverAddr) {
-        this.serverAddr = serverAddr;
+    public void setRegisterAddr(String registerAddr) {
+        this.registerAddr = registerAddr;
     }
 
-    public Integer getPort() {
-        return port;
+    public String getApplicationName() {
+        return applicationName;
     }
 
-    public void setPort(Integer port) {
-        this.port = port;
+    public void setApplicationName(String applicationName) {
+        this.applicationName = applicationName;
+    }
+
+    public String getProxyType() {
+        return proxyType;
+    }
+
+    public void setProxyType(String proxyType) {
+        this.proxyType = proxyType;
     }
 }
