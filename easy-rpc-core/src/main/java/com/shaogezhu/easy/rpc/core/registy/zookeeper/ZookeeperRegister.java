@@ -1,8 +1,12 @@
 package com.shaogezhu.easy.rpc.core.registy.zookeeper;
 
+import com.alibaba.fastjson.JSON;
+import com.alibaba.fastjson.TypeReference;
 import com.shaogezhu.easy.rpc.core.common.event.RpcEvent;
 import com.shaogezhu.easy.rpc.core.common.event.RpcListenerLoader;
+import com.shaogezhu.easy.rpc.core.common.event.RpcNodeUpdateEvent;
 import com.shaogezhu.easy.rpc.core.common.event.RpcUpdateEvent;
+import com.shaogezhu.easy.rpc.core.common.event.data.ProviderNodeInfo;
 import com.shaogezhu.easy.rpc.core.common.event.data.URLChangeWrapper;
 import com.shaogezhu.easy.rpc.core.registy.AbstractRegister;
 import com.shaogezhu.easy.rpc.core.registy.RegistryService;
@@ -10,7 +14,9 @@ import com.shaogezhu.easy.rpc.core.registy.URL;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
 
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
 
 /**
  * @Author peng
@@ -40,6 +46,16 @@ public class ZookeeperRegister extends AbstractRegister implements RegistryServi
         return this.zkClient.getChildrenData(ROOT + "/" + serviceName + "/provider");
     }
 
+    @Override
+    public Map<String, String> getServiceWeightMap(String serviceName) {
+        List<String> nodeDataList = this.zkClient.getChildrenData(ROOT + "/" + serviceName + "/provider");
+        Map<String, String> result = new HashMap<>(16);
+        for (String ipAndHost : nodeDataList) {
+            String childData = this.zkClient.getNodeData(ROOT + "/" + serviceName + "/provider/" + ipAndHost);
+            result.put(ipAndHost, childData);
+        }
+        return result;
+    }
 
     @Override
     public void register(URL url) {
@@ -78,13 +94,22 @@ public class ZookeeperRegister extends AbstractRegister implements RegistryServi
         //监听是否有新的服务注册
         String newServerNodePath = ROOT + "/" + url.getServiceName() + "/provider";
         watchChildNodeData(newServerNodePath);
+        //监听节点内部的数据变化
+        String providerIpStrJson = url.getParameters().get("providerIps");
+        List<String> providerIpList = JSON.parseObject(providerIpStrJson, new TypeReference<List<String>>(){});
+        for (String providerIp : providerIpList) {
+            this.watchNodeDataChange(newServerNodePath + "/" + providerIp);
+        }
     }
 
+    /**
+     * 订阅服务子节点的数据变化（key的变化）
+     */
     public void watchChildNodeData(String newServerNodePath){
         zkClient.watchChildNodeData(newServerNodePath, new Watcher() {
             @Override
             public void process(WatchedEvent watchedEvent) {
-                System.out.println(watchedEvent);
+                System.out.println("watchedEvent:"+watchedEvent);
                 String path = watchedEvent.getPath();
                 List<String> childrenDataList = zkClient.getChildrenData(path);
                 URLChangeWrapper urlChangeWrapper = new URLChangeWrapper();
@@ -94,6 +119,25 @@ public class ZookeeperRegister extends AbstractRegister implements RegistryServi
                 RpcListenerLoader.sendEvent(rpcEvent);
                 //收到回调之后在注册一次监听，这样能保证一直都收到消息
                 watchChildNodeData(path);
+            }
+        });
+    }
+
+
+    /**
+     * 订阅服务节点内部的数据变化（节点对应的内部数据的变化）
+     */
+    public void watchNodeDataChange(String newServerNodePath) {
+        zkClient.watchNodeData(newServerNodePath, new Watcher() {
+            @Override
+            public void process(WatchedEvent watchedEvent) {
+                String path = watchedEvent.getPath();
+                String nodeData = zkClient.getNodeData(path);
+                nodeData = nodeData.replace(";","/");
+                ProviderNodeInfo providerNodeInfo = URL.buildUrlFromUrlStr(nodeData);
+                RpcEvent rpcEvent = new RpcNodeUpdateEvent(providerNodeInfo);
+                RpcListenerLoader.sendEvent(rpcEvent);
+                watchNodeDataChange(newServerNodePath);
             }
         });
     }

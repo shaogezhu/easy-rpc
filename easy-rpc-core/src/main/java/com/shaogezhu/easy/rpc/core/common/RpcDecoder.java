@@ -6,6 +6,8 @@ import io.netty.handler.codec.ByteToMessageDecoder;
 
 import java.util.List;
 
+import static com.shaogezhu.easy.rpc.core.common.constants.RpcConstants.MAGIC_NUMBER;
+
 /**
  * @Author peng
  * @Date 2023/2/24
@@ -28,7 +30,7 @@ public class RpcDecoder extends ByteToMessageDecoder {
 
             int beginReader = byteBuf.readerIndex();
             byteBuf.markReaderIndex();
-            if (byteBuf.readShort() != 123) {
+            if (byteBuf.readShort() != MAGIC_NUMBER) {
                 // 不是魔数开头，说明是非法的客户端发来的数据包
                 ctx.close();
                 return;

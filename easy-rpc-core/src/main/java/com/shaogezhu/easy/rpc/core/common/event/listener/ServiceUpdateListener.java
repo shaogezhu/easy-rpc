@@ -5,6 +5,7 @@ import com.shaogezhu.easy.rpc.core.common.ChannelFutureWrapper;
 import com.shaogezhu.easy.rpc.core.common.event.RpcUpdateEvent;
 import com.shaogezhu.easy.rpc.core.common.event.data.URLChangeWrapper;
 import com.shaogezhu.easy.rpc.core.common.utils.CommonUtil;
+import com.shaogezhu.easy.rpc.core.router.Selector;
 import io.netty.channel.ChannelFuture;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +16,7 @@ import java.util.List;
 import java.util.Set;
 
 import static com.shaogezhu.easy.rpc.core.common.cache.CommonClientCache.CONNECT_MAP;
+import static com.shaogezhu.easy.rpc.core.common.cache.CommonClientCache.ROUTER;
 
 /**
  * @Author peng
@@ -71,5 +73,8 @@ public class ServiceUpdateListener implements RpcListener<RpcUpdateEvent> {
         finalChannelFutureWrappers.addAll(newChannelFutureWrapper);
         //最终在这里更新服务cache
         CONNECT_MAP.put(urlChangeWrapper.getServiceName(), finalChannelFutureWrappers);
+        Selector selector = new Selector();
+        selector.setProviderServiceName(urlChangeWrapper.getServiceName());
+        ROUTER.refreshRouterArr(selector);
     }
 }

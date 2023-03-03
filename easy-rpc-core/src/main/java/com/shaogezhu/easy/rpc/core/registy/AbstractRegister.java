@@ -1,6 +1,7 @@
 package com.shaogezhu.easy.rpc.core.registy;
 
 import java.util.List;
+import java.util.Map;
 
 import static com.shaogezhu.easy.rpc.core.common.cache.CommonClientCache.SUBSCRIBE_SERVICE_LIST;
 import static com.shaogezhu.easy.rpc.core.common.cache.CommonServerCache.PROVIDER_URL_SET;
@@ -25,12 +26,12 @@ public abstract class AbstractRegister  implements RegistryService {
 
     @Override
     public void subscribe(URL url) {
-        SUBSCRIBE_SERVICE_LIST.add(url.getServiceName());
+        SUBSCRIBE_SERVICE_LIST.add(url);
     }
 
     @Override
     public void doUnSubscribe(URL url) {
-        SUBSCRIBE_SERVICE_LIST.remove(url.getServiceName());
+        SUBSCRIBE_SERVICE_LIST.remove(url);
     }
 
     /**
@@ -54,5 +55,13 @@ public abstract class AbstractRegister  implements RegistryService {
      * @return
      */
     public abstract List<String> getProviderIps(String serviceName);
+
+    /**
+     * 获取服务的权重信息
+     *
+     * @param serviceName
+     * @return <ip:port --> urlString>,<ip:port --> urlString>,<ip:port --> urlString>,<ip:port --> urlString>
+     */
+    public abstract Map<String, String> getServiceWeightMap(String serviceName);
 
 }

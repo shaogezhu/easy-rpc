@@ -1,8 +1,10 @@
 package com.shaogezhu.easy.rpc.core.common.cache;
 
+import com.shaogezhu.easy.rpc.core.common.ChannelFuturePollingRef;
 import com.shaogezhu.easy.rpc.core.common.ChannelFutureWrapper;
 import com.shaogezhu.easy.rpc.core.common.RpcInvocation;
 import com.shaogezhu.easy.rpc.core.registy.URL;
+import com.shaogezhu.easy.rpc.core.router.Router;
 
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -24,12 +26,18 @@ public class CommonClientCache {
      */
     public static Map<String,Object> RESP_MAP = new ConcurrentHashMap<>();
 
-    //provider名称 --> 该服务有哪些集群URL
-    public static List<String> SUBSCRIBE_SERVICE_LIST = new ArrayList<>();
-    public static Map<String, List<URL>> URL_MAP = new ConcurrentHashMap<>();
+    //当前Client订阅了哪些服务serviceName->URL
+    public static List<URL> SUBSCRIBE_SERVICE_LIST = new ArrayList<>();
+    //com.test.service -> <<ip:host,urlString>,<ip:host,urlString>,<ip:host,urlString>>
+    public static Map<String, Map<String,String>> URL_MAP = new ConcurrentHashMap<>();
+    //记录所有服务提供者的ip和端口
     public static Set<String> SERVER_ADDRESS = new HashSet<>();
 
-    //每次进行远程调用的时候都是从这里面去选择服务提供者
+    //保存服务端的路由
     public static Map<String, List<ChannelFutureWrapper>> CONNECT_MAP = new ConcurrentHashMap<>();
+    //每次进行远程调用的时候都是从这里面去选择服务提供者
+    public static Map<String, ChannelFutureWrapper[]> SERVICE_ROUTER_MAP = new ConcurrentHashMap<>();
+    public static ChannelFuturePollingRef CHANNEL_FUTURE_POLLING_REF = new ChannelFuturePollingRef();
 
+    public static Router ROUTER;
 }

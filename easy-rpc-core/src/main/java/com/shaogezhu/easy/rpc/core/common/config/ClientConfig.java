@@ -11,7 +11,15 @@ public class ClientConfig {
 
     private String applicationName;
 
+    /**
+     * 代理类型 example: jdk,javassist
+     */
     private String proxyType;
+
+    /**
+     * 负载均衡策略 example:random,rotate
+     */
+    private String routerStrategy;
 
     public String getRegisterAddr() {
         return registerAddr;
@@ -35,5 +43,13 @@ public class ClientConfig {
 
     public void setProxyType(String proxyType) {
         this.proxyType = proxyType;
+    }
+
+    public String getRouterStrategy() {
+        return routerStrategy;
+    }
+
+    public void setRouterStrategy(String routerStrategy) {
+        this.routerStrategy = routerStrategy;
     }
 }

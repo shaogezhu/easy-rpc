@@ -1,6 +1,6 @@
 package com.shaogezhu.easy.rpc.core.registy;
 
-import com.shaogezhu.easy.rpc.core.registy.zookeeper.ProviderNodeInfo;
+import com.shaogezhu.easy.rpc.core.common.event.data.ProviderNodeInfo;
 
 import java.nio.charset.StandardCharsets;
 import java.util.HashMap;
@@ -79,7 +79,7 @@ public class URL {
     public static String buildProviderUrlStr(URL url) {
         String host = url.getParameters().get("host");
         String port = url.getParameters().get("port");
-        return new String((url.getApplicationName() + ";" + url.getServiceName() + ";" + host + ":" + port + ";" + System.currentTimeMillis()).getBytes(), StandardCharsets.UTF_8);
+        return new String((url.getApplicationName() + ";" + url.getServiceName() + ";" + host + ":" + port + ";" + System.currentTimeMillis()+";100").getBytes(), StandardCharsets.UTF_8);
     }
 
     /**
@@ -96,15 +96,16 @@ public class URL {
 
     /**
      * 将某个节点下的信息转换为一个Provider节点对象
-     * 入参格式例如：/easy-rpc/com.shaogezhu.interfaces.DataService/provider/192.168.43.227:9092
+     * 入参格式例如：easy-rpc/com.shaogezhu.interfaces.DataService/192.168.43.227:9092/当前时间/权重
      * @param providerNodeStr
      * @return
      */
     public static ProviderNodeInfo buildUrlFromUrlStr(String providerNodeStr) {
         String[] items = providerNodeStr.split("/");
         ProviderNodeInfo providerNodeInfo = new ProviderNodeInfo();
-        providerNodeInfo.setServiceName(items[2]);
-        providerNodeInfo.setAddress(items[4]);
+        providerNodeInfo.setServiceName(items[1]);
+        providerNodeInfo.setAddress(items[2]);
+        providerNodeInfo.setWeight(Integer.valueOf(items[4]));
         return providerNodeInfo;
     }
 

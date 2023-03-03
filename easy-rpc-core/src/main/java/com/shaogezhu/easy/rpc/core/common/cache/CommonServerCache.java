@@ -1,5 +1,6 @@
 package com.shaogezhu.easy.rpc.core.common.cache;
 
+import com.shaogezhu.easy.rpc.core.registy.RegistryService;
 import com.shaogezhu.easy.rpc.core.registy.URL;
 
 import java.util.HashMap;
@@ -21,4 +22,8 @@ public class CommonServerCache {
      * 服务提供者提供的URL
      */
     public static final Set<URL> PROVIDER_URL_SET = new HashSet<>();
+    /**
+     * 注册中心：用于服务端 服务的注册url和下线
+     */
+    public static RegistryService REGISTRY_SERVICE;
 }

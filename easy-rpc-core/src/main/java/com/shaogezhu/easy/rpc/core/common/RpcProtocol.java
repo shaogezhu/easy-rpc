@@ -3,6 +3,8 @@ package com.shaogezhu.easy.rpc.core.common;
 import java.io.Serializable;
 import java.util.Arrays;
 
+import static com.shaogezhu.easy.rpc.core.common.constants.RpcConstants.MAGIC_NUMBER;
+
 /**
  * @Author peng
  * @Date 2023/2/24
@@ -15,7 +17,7 @@ public class RpcProtocol implements Serializable {
     /**
      * 魔法数,在做服务通讯的时候定义的一个安全检测，确认当前请求的协议是否合法。
      */
-    private short magicNumber = 123;
+    private short magicNumber = MAGIC_NUMBER;
     /**
      * 协议传输核心数据的长度
      */

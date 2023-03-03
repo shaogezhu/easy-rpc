@@ -3,8 +3,8 @@ package com.shaogezhu.easy.rpc.core.server;
 import com.shaogezhu.easy.rpc.core.common.RpcDecoder;
 import com.shaogezhu.easy.rpc.core.common.RpcEncoder;
 import com.shaogezhu.easy.rpc.core.common.config.ServerConfig;
+import com.shaogezhu.easy.rpc.core.common.event.RpcListenerLoader;
 import com.shaogezhu.easy.rpc.core.common.utils.CommonUtil;
-import com.shaogezhu.easy.rpc.core.registy.RegistryService;
 import com.shaogezhu.easy.rpc.core.registy.URL;
 import com.shaogezhu.easy.rpc.core.registy.zookeeper.ZookeeperRegister;
 import com.shaogezhu.easy.rpc.core.server.impl.DataServiceImpl;
@@ -15,8 +15,7 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
-import static com.shaogezhu.easy.rpc.core.common.cache.CommonServerCache.PROVIDER_CLASS_MAP;
-import static com.shaogezhu.easy.rpc.core.common.cache.CommonServerCache.PROVIDER_URL_SET;
+import static com.shaogezhu.easy.rpc.core.common.cache.CommonServerCache.*;
 
 /**
  * @Author peng
@@ -25,8 +24,6 @@ import static com.shaogezhu.easy.rpc.core.common.cache.CommonServerCache.PROVIDE
 public class Server {
 
     private ServerConfig serverConfig;
-
-    private RegistryService registryService;
 
     public ServerConfig getServerConfig() {
         return serverConfig;
@@ -83,7 +80,7 @@ public class Server {
                     e.printStackTrace();
                 }
                 for (URL url : PROVIDER_URL_SET) {
-                    registryService.register(url);
+                    REGISTRY_SERVICE.register(url);
                 }
             }
         });
@@ -98,8 +95,8 @@ public class Server {
         if (classes.length > 1) {
             throw new RuntimeException("service must only had one interfaces!");
         }
-        if (registryService == null) {
-            registryService = new ZookeeperRegister(serverConfig.getRegisterAddr());
+        if (REGISTRY_SERVICE == null) {
+            REGISTRY_SERVICE = new ZookeeperRegister(serverConfig.getRegisterAddr());
         }
         //默认选择该对象的第一个实现接口
         Class<?> interfaceClass = classes[0];
@@ -114,8 +111,16 @@ public class Server {
 
     public static void main(String[] args) throws InterruptedException {
         Server server = new Server();
+        //初始化配置
         server.initServerConfig();
+        //初始化监听器
+        RpcListenerLoader rpcListenerLoader = new RpcListenerLoader();
+        rpcListenerLoader.init();
+        //注册服务
         server.registyService(new DataServiceImpl());
+        //设置回调
+        ServerShutdownHook.registryShutdownHook();
+        //启动服务
         server.startServerApplication();
     }
 
