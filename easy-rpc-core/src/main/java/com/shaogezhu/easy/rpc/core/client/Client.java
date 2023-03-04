@@ -8,6 +8,10 @@ import com.shaogezhu.easy.rpc.core.common.RpcProtocol;
 import com.shaogezhu.easy.rpc.core.common.config.ClientConfig;
 import com.shaogezhu.easy.rpc.core.common.event.RpcListenerLoader;
 import com.shaogezhu.easy.rpc.core.common.utils.CommonUtil;
+import com.shaogezhu.easy.rpc.core.filter.client.ClientFilterChain;
+import com.shaogezhu.easy.rpc.core.filter.client.ClientLogFilterImpl;
+import com.shaogezhu.easy.rpc.core.filter.client.DirectInvokeFilterImpl;
+import com.shaogezhu.easy.rpc.core.filter.client.GroupFilterImpl;
 import com.shaogezhu.easy.rpc.core.proxy.javassist.JavassistProxyFactory;
 import com.shaogezhu.easy.rpc.core.proxy.jdk.JDKProxyFactory;
 import com.shaogezhu.easy.rpc.core.registy.AbstractRegister;
@@ -20,6 +24,7 @@ import com.shaogezhu.easy.rpc.core.serialize.hessian.HessianSerializeFactory;
 import com.shaogezhu.easy.rpc.core.serialize.jdk.JdkSerializeFactory;
 import com.shaogezhu.easy.rpc.core.serialize.kryo.KryoSerializeFactory;
 import com.shaogezhu.easy.rpc.interfaces.DataService;
+import com.shaogezhu.easy.rpc.interfaces.UserService;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
 import io.netty.channel.ChannelInitializer;
@@ -39,22 +44,12 @@ import static com.shaogezhu.easy.rpc.core.common.constants.RpcConstants.*;
  */
 public class Client {
 
-    private ClientConfig clientConfig;
-
     private AbstractRegister abstractRegister;
 
     private final Bootstrap bootstrap = new Bootstrap();
 
     public Bootstrap getBootstrap() {
         return bootstrap;
-    }
-
-    public ClientConfig getClientConfig() {
-        return clientConfig;
-    }
-
-    public void setClientConfig(ClientConfig clientConfig) {
-        this.clientConfig = clientConfig;
     }
 
     public RpcReference initClientApplication() throws InterruptedException {
@@ -79,8 +74,16 @@ public class Client {
         RpcListenerLoader rpcListenerLoader = new RpcListenerLoader();
         rpcListenerLoader.init();
 
+        //初始化路由策略
+        String routerStrategy = CLIENT_CONFIG.getRouterStrategy();
+        if (RANDOM_ROUTER_TYPE.equals(routerStrategy)) {
+            ROUTER = new RandomRouterImpl();
+        } else if (ROTATE_ROUTER_TYPE.equals(routerStrategy)) {
+            ROUTER = new RotateRouterImpl();
+        }
+
         //初始化序列化器
-        String clientSerialize = clientConfig.getClientSerialize();
+        String clientSerialize = CLIENT_CONFIG.getClientSerialize();
         switch (clientSerialize) {
             case JDK_SERIALIZE_TYPE:
                 CLIENT_SERIALIZE_FACTORY = new JdkSerializeFactory();
@@ -98,9 +101,16 @@ public class Client {
                 throw new RuntimeException("no match serialize type for" + clientSerialize);
         }
 
+        //初始化过滤链
+        ClientFilterChain clientFilterChain = new ClientFilterChain();
+        clientFilterChain.addClientFilter(new ClientLogFilterImpl());
+        clientFilterChain.addClientFilter(new GroupFilterImpl());
+        clientFilterChain.addClientFilter(new DirectInvokeFilterImpl());
+        CLIENT_FILTER_CHAIN = clientFilterChain;
+
         //初始化代理工厂
         RpcReference rpcReference;
-        if (JAVASSIST_PROXY_TYPE.equals(clientConfig.getProxyType())) {
+        if (JAVASSIST_PROXY_TYPE.equals(CLIENT_CONFIG.getProxyType())) {
             rpcReference = new RpcReference(new JavassistProxyFactory());
         } else {
             rpcReference = new RpcReference(new JDKProxyFactory());
@@ -116,16 +126,7 @@ public class Client {
         clientConfig.setProxyType("JDK");
         clientConfig.setRouterStrategy("random");
         clientConfig.setClientSerialize("kryo");
-        this.setClientConfig(clientConfig);
-    }
-
-    private void initClientRouterStrategy() {
-        String routerStrategy = clientConfig.getRouterStrategy();
-        if (RANDOM_ROUTER_TYPE.equals(routerStrategy)) {
-            ROUTER = new RandomRouterImpl();
-        } else if (ROTATE_ROUTER_TYPE.equals(routerStrategy)) {
-            ROUTER = new RotateRouterImpl();
-        }
+        CLIENT_CONFIG = clientConfig;
     }
 
     /**
@@ -133,10 +134,10 @@ public class Client {
      */
     public void doSubscribeService(Class<?> serviceBean) {
         if (abstractRegister == null) {
-            abstractRegister = new ZookeeperRegister(clientConfig.getRegisterAddr());
+            abstractRegister = new ZookeeperRegister(CLIENT_CONFIG.getRegisterAddr());
         }
         URL url = new URL();
-        url.setApplicationName(clientConfig.getApplicationName());
+        url.setApplicationName(CLIENT_CONFIG.getApplicationName());
         url.setServiceName(serviceBean.getName());
         url.addParameter("host", CommonUtil.getIpAddress());
         Map<String, String> result = abstractRegister.getServiceWeightMap(serviceBean.getName());
@@ -191,7 +192,7 @@ public class Client {
                     //将RpcInvocation封装到RpcProtocol对象中，然后发送给服务端
                     RpcProtocol rpcProtocol = new RpcProtocol(serialize);
                     //获取netty通道
-                    ChannelFuture channelFuture = ConnectionHandler.getChannelFuture(data.getTargetServiceName());
+                    ChannelFuture channelFuture = ConnectionHandler.getChannelFuture(data);
                     //netty的通道负责发送数据给服务端
                     channelFuture.channel().writeAndFlush(rpcProtocol);
                 } catch (InterruptedException e) {
@@ -206,26 +207,31 @@ public class Client {
         Client client = new Client();
         //初始化配置文件
         client.initClientConfig();
-        //初始化路由策略
-        client.initClientRouterStrategy();
         //初始化客户端
         RpcReference rpcReference = client.initClientApplication();
 
         //订阅服务
         client.doSubscribeService(DataService.class);
+        client.doSubscribeService(UserService.class);
+
         //建立连接
         client.doConnectServer();
         //启动客户端
         client.startClient();
         System.out.println("========== Client start success ==========");
 
-        //生成代理对象
-        DataService dataService = rpcReference.get(DataService.class);
+        //生成代理对象DataService
+        RpcReferenceWrapper<DataService> rpcReferenceWrapper1 = new RpcReferenceWrapper<>();
+        rpcReferenceWrapper1.setAimClass(DataService.class);
+        rpcReferenceWrapper1.setGroup("dev");
+        rpcReferenceWrapper1.setServiceToken("token-a");
+        rpcReferenceWrapper1.setUrl("192.168.31.128:8010");
+        DataService dataService = rpcReference.get(rpcReferenceWrapper1);
         //调用远程方法
         List<String> list = dataService.getList();
         System.out.println(list);
 
-        for (int i = 100; i < 999; ++i){
+        for (int i = 100; i < 101; ++i){
             Thread.sleep(1000);
             String msg = i+":msg from client.";
             String s = dataService.sendData(msg);
@@ -233,6 +239,17 @@ public class Client {
         }
 //        dataService.testError();
 //        dataService.testErrorV2();
+
+        //生成代理对象UserService
+        RpcReferenceWrapper<UserService> rpcReferenceWrapper2 = new RpcReferenceWrapper<>();
+        rpcReferenceWrapper2.setAimClass(UserService.class);
+        rpcReferenceWrapper2.setGroup("test");
+        rpcReferenceWrapper2.setServiceToken("token-b");
+//        rpcReferenceWrapper2.setUrl("192.168.31.123:8010");
+        UserService userService = rpcReference.get(rpcReferenceWrapper2);
+        //调用远程方法
+        userService.test();
+
     }
 
 }

@@ -1,5 +1,6 @@
 package com.shaogezhu.easy.rpc.core.proxy.javassist;
 
+import com.shaogezhu.easy.rpc.core.client.RpcReferenceWrapper;
 import com.shaogezhu.easy.rpc.core.proxy.ProxyFactory;
 
 /**
@@ -10,8 +11,8 @@ import com.shaogezhu.easy.rpc.core.proxy.ProxyFactory;
 public class JavassistProxyFactory implements ProxyFactory {
 
     @Override
-    public <T> T getProxy(Class<?> clazz) throws Throwable {
+    public <T> T getProxy(RpcReferenceWrapper<T> rpcReferenceWrapper) throws Throwable {
         return (T) ProxyGenerator.newProxyInstance(Thread.currentThread().getContextClassLoader(),
-                clazz, new JavassistInvocationHandler(clazz));
+                rpcReferenceWrapper.getAimClass(), new JavassistInvocationHandler(rpcReferenceWrapper));
     }
 }

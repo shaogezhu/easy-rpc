@@ -1,13 +1,17 @@
 package com.shaogezhu.easy.rpc.core.common.cache;
 
+import com.shaogezhu.easy.rpc.core.common.config.ServerConfig;
+import com.shaogezhu.easy.rpc.core.filter.server.ServerFilterChain;
 import com.shaogezhu.easy.rpc.core.registy.RegistryService;
 import com.shaogezhu.easy.rpc.core.registy.URL;
 import com.shaogezhu.easy.rpc.core.serialize.SerializeFactory;
+import com.shaogezhu.easy.rpc.core.server.ServiceWrapper;
 
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
+import java.util.concurrent.ConcurrentHashMap;
 
 /**
  * @Author peng
@@ -31,4 +35,16 @@ public class CommonServerCache {
      * 服务端序列化工厂
      */
     public static SerializeFactory SERVER_SERIALIZE_FACTORY;
+    /**
+     * 服务端过滤链
+     */
+    public static ServerFilterChain SERVER_FILTER_CHAIN;
+    /**
+     * 服务端配置类
+     */
+    public static ServerConfig SERVER_CONFIG;
+    /**
+     * 用于过滤链的Map<ServiceName,服务端包装类>
+     */
+    public static final Map<String, ServiceWrapper> PROVIDER_SERVICE_WRAPPER_MAP = new ConcurrentHashMap<>();
 }

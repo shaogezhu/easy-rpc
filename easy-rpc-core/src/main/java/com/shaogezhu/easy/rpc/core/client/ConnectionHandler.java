@@ -1,7 +1,10 @@
 package com.shaogezhu.easy.rpc.core.client;
 
 import com.shaogezhu.easy.rpc.core.common.ChannelFutureWrapper;
+import com.shaogezhu.easy.rpc.core.common.RpcInvocation;
+import com.shaogezhu.easy.rpc.core.common.event.data.ProviderNodeInfo;
 import com.shaogezhu.easy.rpc.core.common.utils.CommonUtil;
+import com.shaogezhu.easy.rpc.core.registy.URL;
 import com.shaogezhu.easy.rpc.core.router.Selector;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
@@ -49,12 +52,14 @@ public class ConnectionHandler {
         //到底这个channelFuture里面是什么
         ChannelFuture channelFuture = bootstrap.connect(ip, port).sync();
         String providerUrlInfo = URL_MAP.get(providerServiceName).get(providerIp);
+        ProviderNodeInfo providerNodeInfo = URL.buildUrlFromUrlStr(providerUrlInfo);
         System.out.println("providerUrlInfo:"+providerUrlInfo);
         ChannelFutureWrapper channelFutureWrapper = new ChannelFutureWrapper();
         channelFutureWrapper.setChannelFuture(channelFuture);
         channelFutureWrapper.setHost(ip);
         channelFutureWrapper.setPort(port);
-        channelFutureWrapper.setWeight(Integer.valueOf(providerUrlInfo.substring(providerUrlInfo.lastIndexOf(";")+1)));
+        channelFutureWrapper.setGroup(providerNodeInfo.getGroup());
+        channelFutureWrapper.setWeight(providerNodeInfo.getWeight());
         SERVER_ADDRESS.add(providerIp);
         List<ChannelFutureWrapper> channelFutureWrappers = CONNECT_MAP.getOrDefault(providerServiceName, new ArrayList<>());
         channelFutureWrappers.add(channelFutureWrapper);
@@ -94,17 +99,26 @@ public class ConnectionHandler {
     /**
      * 默认走随机策略获取ChannelFuture
      *
-     * @param providerServiceName
+     * @param rpcInvocation
      * @return
      */
-    public static ChannelFuture getChannelFuture(String providerServiceName) {
-        List<ChannelFutureWrapper> channelFutureWrappers = CONNECT_MAP.get(providerServiceName);
-        if (CommonUtil.isEmptyList(channelFutureWrappers)) {
+    public static ChannelFuture getChannelFuture(RpcInvocation rpcInvocation) {
+        String providerServiceName = rpcInvocation.getTargetServiceName();
+        List<ChannelFutureWrapper> channelFutureWrapperList = CONNECT_MAP.get(providerServiceName);
+        if (CommonUtil.isEmptyList(channelFutureWrapperList)) {
             throw new RuntimeException("no provider exist for " + providerServiceName);
         }
-        Selector selector = new Selector();
-        selector.setProviderServiceName(providerServiceName);
-        return ROUTER.select(selector).getChannelFuture();
+        CLIENT_FILTER_CHAIN.doFilter(channelFutureWrapperList, rpcInvocation);
+        //过滤掉不符合条件的通道
+        ChannelFutureWrapper[] allChannelFutureWrappers = SERVICE_ROUTER_MAP.get(providerServiceName);
+        List<ChannelFutureWrapper> channelFutureWrappers = new ArrayList<>();
+        for (ChannelFutureWrapper channelFutureWrapper : allChannelFutureWrappers) {
+            if (channelFutureWrapperList.contains(channelFutureWrapper)){
+                channelFutureWrappers.add(channelFutureWrapper);
+            }
+        }
+
+        return ROUTER.select(channelFutureWrappers.toArray(new ChannelFutureWrapper[0])).getChannelFuture();
     }
 
 

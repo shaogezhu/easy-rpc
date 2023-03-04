@@ -20,10 +20,10 @@ public interface Router {
     /**
      * 获取到请求的连接通道
      *
-     * @param selector
+     * @param channelFutureWrappers
      * @return
      */
-    ChannelFutureWrapper select(Selector selector);
+    ChannelFutureWrapper select(ChannelFutureWrapper[] channelFutureWrappers);
 
     /**
      * 更新权重信息

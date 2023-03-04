@@ -1,5 +1,6 @@
 package com.shaogezhu.easy.rpc.core.proxy.javassist;
 
+import com.shaogezhu.easy.rpc.core.client.RpcReferenceWrapper;
 import com.shaogezhu.easy.rpc.core.common.RpcInvocation;
 
 import java.lang.reflect.InvocationHandler;
@@ -19,10 +20,10 @@ public class JavassistInvocationHandler implements InvocationHandler {
 
     private final static Object OBJECT = new Object();
 
-    private final Class<?> clazz;
+    private final RpcReferenceWrapper<?> rpcReferenceWrapper;
 
-    public JavassistInvocationHandler(Class<?> clazz) {
-        this.clazz = clazz;
+    public JavassistInvocationHandler(RpcReferenceWrapper<?> rpcReferenceWrapper) {
+        this.rpcReferenceWrapper = rpcReferenceWrapper;
     }
 
     @Override
@@ -30,7 +31,8 @@ public class JavassistInvocationHandler implements InvocationHandler {
         RpcInvocation rpcInvocation = new RpcInvocation();
         rpcInvocation.setArgs(args);
         rpcInvocation.setTargetMethod(method.getName());
-        rpcInvocation.setTargetServiceName(clazz.getName());
+        rpcInvocation.setTargetServiceName(rpcReferenceWrapper.getAimClass().getName());
+        rpcInvocation.setAttachments(rpcReferenceWrapper.getAttatchments());
         rpcInvocation.setUuid(UUID.randomUUID().toString());
         RESP_MAP.put(rpcInvocation.getUuid(), OBJECT);
         SEND_QUEUE.add(rpcInvocation);

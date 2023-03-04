@@ -26,8 +26,8 @@ public class RotateRouterImpl implements Router {
     }
 
     @Override
-    public ChannelFutureWrapper select(Selector selector) {
-        return CHANNEL_FUTURE_POLLING_REF.getChannelFutureWrapper(selector.getProviderServiceName());
+    public ChannelFutureWrapper select(ChannelFutureWrapper[] channelFutureWrappers) {
+        return CHANNEL_FUTURE_POLLING_REF.getChannelFutureWrapper(channelFutureWrappers);
     }
 
     @Override

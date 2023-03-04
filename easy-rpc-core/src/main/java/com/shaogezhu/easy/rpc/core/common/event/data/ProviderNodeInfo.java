@@ -7,11 +7,31 @@ package com.shaogezhu.easy.rpc.core.common.event.data;
  */
 public class ProviderNodeInfo {
 
+    private String applicationName;
+
     private String serviceName;
 
     private String address;
 
     private Integer weight;
+
+    private String group;
+
+    public String getGroup() {
+        return group;
+    }
+
+    public void setGroup(String group) {
+        this.group = group;
+    }
+
+    public String getApplicationName() {
+        return applicationName;
+    }
+
+    public void setApplicationName(String applicationName) {
+        this.applicationName = applicationName;
+    }
 
     public String getServiceName() {
         return serviceName;
@@ -40,9 +60,11 @@ public class ProviderNodeInfo {
     @Override
     public String toString() {
         return "ProviderNodeInfo{" +
-                "serviceName='" + serviceName + '\'' +
+                "applicationName='" + applicationName + '\'' +
+                ", serviceName='" + serviceName + '\'' +
                 ", address='" + address + '\'' +
                 ", weight=" + weight +
+                ", group='" + group + '\'' +
                 '}';
     }
 }

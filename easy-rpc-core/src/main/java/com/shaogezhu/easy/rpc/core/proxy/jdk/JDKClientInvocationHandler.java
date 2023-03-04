@@ -1,5 +1,6 @@
 package com.shaogezhu.easy.rpc.core.proxy.jdk;
 
+import com.shaogezhu.easy.rpc.core.client.RpcReferenceWrapper;
 import com.shaogezhu.easy.rpc.core.common.RpcInvocation;
 
 import java.lang.reflect.InvocationHandler;
@@ -19,10 +20,10 @@ public class JDKClientInvocationHandler implements InvocationHandler {
 
     private final static Object OBJECT = new Object();
 
-    private final Class<?> clazz;
+    private final RpcReferenceWrapper<?> rpcReferenceWrapper;
 
-    public JDKClientInvocationHandler(Class<?> clazz) {
-        this.clazz = clazz;
+    public JDKClientInvocationHandler(RpcReferenceWrapper<?> rpcReferenceWrapper) {
+        this.rpcReferenceWrapper = rpcReferenceWrapper;
     }
 
     @Override
@@ -30,7 +31,8 @@ public class JDKClientInvocationHandler implements InvocationHandler {
         RpcInvocation rpcInvocation = new RpcInvocation();
         rpcInvocation.setArgs(args);
         rpcInvocation.setTargetMethod(method.getName());
-        rpcInvocation.setTargetServiceName(clazz.getName());
+        rpcInvocation.setTargetServiceName(rpcReferenceWrapper.getAimClass().getName());
+        rpcInvocation.setAttachments(rpcReferenceWrapper.getAttatchments());
         //注入uuid，对每一次的请求都做单独区分
         rpcInvocation.setUuid(UUID.randomUUID().toString());
         RESP_MAP.put(rpcInvocation.getUuid(), OBJECT);

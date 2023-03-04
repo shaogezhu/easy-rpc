@@ -1,5 +1,7 @@
 package com.shaogezhu.easy.rpc.core.proxy;
 
+import com.shaogezhu.easy.rpc.core.client.RpcReferenceWrapper;
+
 /**
  * @Author peng
  * @Date 2023/2/24
@@ -8,5 +10,5 @@ package com.shaogezhu.easy.rpc.core.proxy;
 public interface ProxyFactory {
 
 
-    <T> T getProxy(final Class<?> clazz) throws Throwable;
+    <T> T getProxy(final RpcReferenceWrapper<T> rpcReferenceWrapper) throws Throwable;
 }
