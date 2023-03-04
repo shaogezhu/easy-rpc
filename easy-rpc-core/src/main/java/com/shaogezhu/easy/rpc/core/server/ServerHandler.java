@@ -1,6 +1,5 @@
 package com.shaogezhu.easy.rpc.core.server;
 
-import com.alibaba.fastjson.JSON;
 import com.shaogezhu.easy.rpc.core.common.RpcInvocation;
 import com.shaogezhu.easy.rpc.core.common.RpcProtocol;
 import io.netty.channel.Channel;
@@ -10,6 +9,7 @@ import io.netty.channel.ChannelInboundHandlerAdapter;
 import java.lang.reflect.Method;
 
 import static com.shaogezhu.easy.rpc.core.common.cache.CommonServerCache.PROVIDER_CLASS_MAP;
+import static com.shaogezhu.easy.rpc.core.common.cache.CommonServerCache.SERVER_SERIALIZE_FACTORY;
 
 /**
  * @Author peng
@@ -20,8 +20,7 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         RpcProtocol rpcProtocol = (RpcProtocol) msg;
-        String json = new String(rpcProtocol.getContent(), 0, rpcProtocol.getContentLength());
-        RpcInvocation rpcInvocation = JSON.parseObject(json, RpcInvocation.class);
+        RpcInvocation rpcInvocation = SERVER_SERIALIZE_FACTORY.deserialize(rpcProtocol.getContent(), RpcInvocation.class);
         Object aimObject = PROVIDER_CLASS_MAP.get(rpcInvocation.getTargetServiceName());
         Method[] methods = aimObject.getClass().getDeclaredMethods();
         Object result = null;
@@ -37,7 +36,8 @@ public class ServerHandler extends ChannelInboundHandlerAdapter {
             }
         }
         rpcInvocation.setResponse(result);
-        RpcProtocol respRpcProtocol = new RpcProtocol(JSON.toJSONString(rpcInvocation).getBytes());
+        byte[] serialize = SERVER_SERIALIZE_FACTORY.serialize(rpcInvocation);
+        RpcProtocol respRpcProtocol = new RpcProtocol(serialize);
         ctx.writeAndFlush(respRpcProtocol);
     }
 

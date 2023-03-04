@@ -7,6 +7,10 @@ import com.shaogezhu.easy.rpc.core.common.event.RpcListenerLoader;
 import com.shaogezhu.easy.rpc.core.common.utils.CommonUtil;
 import com.shaogezhu.easy.rpc.core.registy.URL;
 import com.shaogezhu.easy.rpc.core.registy.zookeeper.ZookeeperRegister;
+import com.shaogezhu.easy.rpc.core.serialize.fastjson.FastJsonSerializeFactory;
+import com.shaogezhu.easy.rpc.core.serialize.hessian.HessianSerializeFactory;
+import com.shaogezhu.easy.rpc.core.serialize.jdk.JdkSerializeFactory;
+import com.shaogezhu.easy.rpc.core.serialize.kryo.KryoSerializeFactory;
 import com.shaogezhu.easy.rpc.core.server.impl.DataServiceImpl;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.channel.ChannelInitializer;
@@ -16,6 +20,7 @@ import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
 import static com.shaogezhu.easy.rpc.core.common.cache.CommonServerCache.*;
+import static com.shaogezhu.easy.rpc.core.common.constants.RpcConstants.*;
 
 /**
  * @Author peng
@@ -54,6 +59,26 @@ public class Server {
             }
         });
 
+
+        //初始化序列化器
+        String serverSerialize = serverConfig.getServerSerialize();
+        switch (serverSerialize) {
+            case JDK_SERIALIZE_TYPE:
+                SERVER_SERIALIZE_FACTORY = new JdkSerializeFactory();
+                break;
+            case FAST_JSON_SERIALIZE_TYPE:
+                SERVER_SERIALIZE_FACTORY = new FastJsonSerializeFactory();
+                break;
+            case HESSIAN2_SERIALIZE_TYPE:
+                SERVER_SERIALIZE_FACTORY = new HessianSerializeFactory();
+                break;
+            case KRYO_SERIALIZE_TYPE:
+                SERVER_SERIALIZE_FACTORY = new KryoSerializeFactory();
+                break;
+            default:
+                throw new RuntimeException("no match serialize type for" + serverSerialize);
+        }
+
         this.batchExportUrl();
         bootstrap.bind(serverConfig.getPort()).sync();
         System.out.println("========== Server start success ==========");
@@ -64,6 +89,7 @@ public class Server {
         serverConfig.setPort(8010);
         serverConfig.setRegisterAddr("localhost:2181");
         serverConfig.setApplicationName("easy-rpc-server");
+        serverConfig.setServerSerialize("kryo");
         this.setServerConfig(serverConfig);
     }
 

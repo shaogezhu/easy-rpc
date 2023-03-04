@@ -21,6 +21,11 @@ public class ClientConfig {
      */
     private String routerStrategy;
 
+    /**
+     * 客户端序列化方式 example: hessian2,kryo,jdk,fastjson
+     */
+    private String clientSerialize;
+
     public String getRegisterAddr() {
         return registerAddr;
     }
@@ -51,5 +56,13 @@ public class ClientConfig {
 
     public void setRouterStrategy(String routerStrategy) {
         this.routerStrategy = routerStrategy;
+    }
+
+    public String getClientSerialize() {
+        return clientSerialize;
+    }
+
+    public void setClientSerialize(String clientSerialize) {
+        this.clientSerialize = clientSerialize;
     }
 }

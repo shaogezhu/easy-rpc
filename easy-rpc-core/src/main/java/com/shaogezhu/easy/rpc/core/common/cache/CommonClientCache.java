@@ -5,6 +5,7 @@ import com.shaogezhu.easy.rpc.core.common.ChannelFutureWrapper;
 import com.shaogezhu.easy.rpc.core.common.RpcInvocation;
 import com.shaogezhu.easy.rpc.core.registy.URL;
 import com.shaogezhu.easy.rpc.core.router.Router;
+import com.shaogezhu.easy.rpc.core.serialize.SerializeFactory;
 
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -38,6 +39,8 @@ public class CommonClientCache {
     //每次进行远程调用的时候都是从这里面去选择服务提供者
     public static Map<String, ChannelFutureWrapper[]> SERVICE_ROUTER_MAP = new ConcurrentHashMap<>();
     public static ChannelFuturePollingRef CHANNEL_FUTURE_POLLING_REF = new ChannelFuturePollingRef();
-
+    //路由组件
     public static Router ROUTER;
+    //客户端序列化工厂
+    public static SerializeFactory CLIENT_SERIALIZE_FACTORY;
 }

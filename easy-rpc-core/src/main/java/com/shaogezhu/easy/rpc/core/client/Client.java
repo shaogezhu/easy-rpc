@@ -15,6 +15,10 @@ import com.shaogezhu.easy.rpc.core.registy.URL;
 import com.shaogezhu.easy.rpc.core.registy.zookeeper.ZookeeperRegister;
 import com.shaogezhu.easy.rpc.core.router.RandomRouterImpl;
 import com.shaogezhu.easy.rpc.core.router.RotateRouterImpl;
+import com.shaogezhu.easy.rpc.core.serialize.fastjson.FastJsonSerializeFactory;
+import com.shaogezhu.easy.rpc.core.serialize.hessian.HessianSerializeFactory;
+import com.shaogezhu.easy.rpc.core.serialize.jdk.JdkSerializeFactory;
+import com.shaogezhu.easy.rpc.core.serialize.kryo.KryoSerializeFactory;
 import com.shaogezhu.easy.rpc.interfaces.DataService;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
@@ -75,6 +79,25 @@ public class Client {
         RpcListenerLoader rpcListenerLoader = new RpcListenerLoader();
         rpcListenerLoader.init();
 
+        //初始化序列化器
+        String clientSerialize = clientConfig.getClientSerialize();
+        switch (clientSerialize) {
+            case JDK_SERIALIZE_TYPE:
+                CLIENT_SERIALIZE_FACTORY = new JdkSerializeFactory();
+                break;
+            case FAST_JSON_SERIALIZE_TYPE:
+                CLIENT_SERIALIZE_FACTORY = new FastJsonSerializeFactory();
+                break;
+            case HESSIAN2_SERIALIZE_TYPE:
+                CLIENT_SERIALIZE_FACTORY = new HessianSerializeFactory();
+                break;
+            case KRYO_SERIALIZE_TYPE:
+                CLIENT_SERIALIZE_FACTORY = new KryoSerializeFactory();
+                break;
+            default:
+                throw new RuntimeException("no match serialize type for" + clientSerialize);
+        }
+
         //初始化代理工厂
         RpcReference rpcReference;
         if (JAVASSIST_PROXY_TYPE.equals(clientConfig.getProxyType())) {
@@ -92,6 +115,7 @@ public class Client {
         clientConfig.setApplicationName("easy-rpc-client");
         clientConfig.setProxyType("JDK");
         clientConfig.setRouterStrategy("random");
+        clientConfig.setClientSerialize("kryo");
         this.setClientConfig(clientConfig);
     }
 
@@ -162,9 +186,10 @@ public class Client {
                 try {
                     //阻塞模式
                     RpcInvocation data = SEND_QUEUE.take();
-                    String json = JSON.toJSONString(data);
+                    //进行序列化
+                    byte[] serialize = CLIENT_SERIALIZE_FACTORY.serialize(data);
                     //将RpcInvocation封装到RpcProtocol对象中，然后发送给服务端
-                    RpcProtocol rpcProtocol = new RpcProtocol(json.getBytes());
+                    RpcProtocol rpcProtocol = new RpcProtocol(serialize);
                     //获取netty通道
                     ChannelFuture channelFuture = ConnectionHandler.getChannelFuture(data.getTargetServiceName());
                     //netty的通道负责发送数据给服务端

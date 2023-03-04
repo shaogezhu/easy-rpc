@@ -2,6 +2,7 @@ package com.shaogezhu.easy.rpc.core.common.cache;
 
 import com.shaogezhu.easy.rpc.core.registy.RegistryService;
 import com.shaogezhu.easy.rpc.core.registy.URL;
+import com.shaogezhu.easy.rpc.core.serialize.SerializeFactory;
 
 import java.util.HashMap;
 import java.util.HashSet;
@@ -26,4 +27,8 @@ public class CommonServerCache {
      * 注册中心：用于服务端 服务的注册url和下线
      */
     public static RegistryService REGISTRY_SERVICE;
+    /**
+     * 服务端序列化工厂
+     */
+    public static SerializeFactory SERVER_SERIALIZE_FACTORY;
 }

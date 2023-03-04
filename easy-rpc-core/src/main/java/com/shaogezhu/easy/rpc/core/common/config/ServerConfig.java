@@ -13,6 +13,11 @@ public class ServerConfig {
 
     private String applicationName;
 
+    /**
+     * 服务端序列化方式 example: hessian2,kryo,jdk,fastjson
+     */
+    private String serverSerialize;
+
     public Integer getPort() {
         return port;
     }
@@ -35,5 +40,13 @@ public class ServerConfig {
 
     public void setApplicationName(String applicationName) {
         this.applicationName = applicationName;
+    }
+
+    public String getServerSerialize() {
+        return serverSerialize;
+    }
+
+    public void setServerSerialize(String serverSerialize) {
+        this.serverSerialize = serverSerialize;
     }
 }

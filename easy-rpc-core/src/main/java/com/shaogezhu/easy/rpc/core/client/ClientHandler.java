@@ -1,6 +1,5 @@
 package com.shaogezhu.easy.rpc.core.client;
 
-import com.alibaba.fastjson.JSON;
 import com.shaogezhu.easy.rpc.core.common.RpcInvocation;
 import com.shaogezhu.easy.rpc.core.common.RpcProtocol;
 import io.netty.channel.Channel;
@@ -8,6 +7,7 @@ import io.netty.channel.ChannelHandlerContext;
 import io.netty.channel.ChannelInboundHandlerAdapter;
 import io.netty.util.ReferenceCountUtil;
 
+import static com.shaogezhu.easy.rpc.core.common.cache.CommonClientCache.CLIENT_SERIALIZE_FACTORY;
 import static com.shaogezhu.easy.rpc.core.common.cache.CommonClientCache.RESP_MAP;
 
 /**
@@ -18,9 +18,7 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
     @Override
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         RpcProtocol rpcProtocol = (RpcProtocol) msg;
-        byte[] reqContent = rpcProtocol.getContent();
-        String json = new String(reqContent,0,reqContent.length);
-        RpcInvocation rpcInvocation = JSON.parseObject(json, RpcInvocation.class);
+        RpcInvocation rpcInvocation = CLIENT_SERIALIZE_FACTORY.deserialize(rpcProtocol.getContent(), RpcInvocation.class);
         //通过之前发送的uuid来注入匹配的响应数值
         if(!RESP_MAP.containsKey(rpcInvocation.getUuid())){
             throw new IllegalArgumentException("server response is error!");

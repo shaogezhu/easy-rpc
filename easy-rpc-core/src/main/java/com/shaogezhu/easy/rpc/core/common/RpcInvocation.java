@@ -1,5 +1,6 @@
 package com.shaogezhu.easy.rpc.core.common;
 
+import java.io.Serializable;
 import java.util.Arrays;
 
 /**
@@ -7,7 +8,10 @@ import java.util.Arrays;
  * @Date 2023/2/24
  * @description:
  */
-public class RpcInvocation {
+public class RpcInvocation implements Serializable {
+
+    private static final long serialVersionUID = 2951293262547830249L;
+
     /**
      * 请求的目标方法, 例如sendData
      */
