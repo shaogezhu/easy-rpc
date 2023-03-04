@@ -21,7 +21,7 @@ public class RpcDecoder extends ByteToMessageDecoder {
     public final int BASE_LENGTH = 2 + 4;
 
     @Override
-    protected void decode(ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> out) throws Exception {
+    protected void decode(ChannelHandlerContext ctx, ByteBuf byteBuf, List<Object> out) {
         if (byteBuf.readableBytes() >= BASE_LENGTH) {
             //防止收到一些体积过大的数据包 目前限制在1000大小
             if (byteBuf.readableBytes() > 1000) {
