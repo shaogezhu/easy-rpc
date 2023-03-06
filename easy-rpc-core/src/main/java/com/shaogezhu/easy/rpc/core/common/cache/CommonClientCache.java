@@ -8,6 +8,7 @@ import com.shaogezhu.easy.rpc.core.filter.client.ClientFilterChain;
 import com.shaogezhu.easy.rpc.core.registy.URL;
 import com.shaogezhu.easy.rpc.core.router.Router;
 import com.shaogezhu.easy.rpc.core.serialize.SerializeFactory;
+import com.shaogezhu.easy.rpc.core.spi.ExtensionLoader;
 
 import java.util.*;
 import java.util.concurrent.ArrayBlockingQueue;
@@ -49,5 +50,6 @@ public class CommonClientCache {
     public static ClientFilterChain CLIENT_FILTER_CHAIN;
     //客户端配置类
     public static ClientConfig CLIENT_CONFIG;
-
+    //SPI加载组件
+    public static ExtensionLoader EXTENSION_LOADER = new ExtensionLoader();
 }

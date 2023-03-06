@@ -11,6 +11,8 @@ public class ServerConfig {
 
     private String registerAddr;
 
+    private String registerType;
+
     private String applicationName;
 
     /**
@@ -48,5 +50,13 @@ public class ServerConfig {
 
     public void setServerSerialize(String serverSerialize) {
         this.serverSerialize = serverSerialize;
+    }
+
+    public String getRegisterType() {
+        return registerType;
+    }
+
+    public void setRegisterType(String registerType) {
+        this.registerType = registerType;
     }
 }

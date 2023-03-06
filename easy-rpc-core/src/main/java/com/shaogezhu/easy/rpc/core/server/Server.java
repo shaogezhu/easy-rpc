@@ -5,15 +5,12 @@ import com.shaogezhu.easy.rpc.core.common.RpcEncoder;
 import com.shaogezhu.easy.rpc.core.common.config.ServerConfig;
 import com.shaogezhu.easy.rpc.core.common.event.RpcListenerLoader;
 import com.shaogezhu.easy.rpc.core.common.utils.CommonUtil;
+import com.shaogezhu.easy.rpc.core.filter.ServerFilter;
 import com.shaogezhu.easy.rpc.core.filter.server.ServerFilterChain;
-import com.shaogezhu.easy.rpc.core.filter.server.ServerLogFilterImpl;
-import com.shaogezhu.easy.rpc.core.filter.server.ServerTokenFilterImpl;
+import com.shaogezhu.easy.rpc.core.registy.AbstractRegister;
+import com.shaogezhu.easy.rpc.core.registy.RegistryService;
 import com.shaogezhu.easy.rpc.core.registy.URL;
-import com.shaogezhu.easy.rpc.core.registy.zookeeper.ZookeeperRegister;
-import com.shaogezhu.easy.rpc.core.serialize.fastjson.FastJsonSerializeFactory;
-import com.shaogezhu.easy.rpc.core.serialize.hessian.HessianSerializeFactory;
-import com.shaogezhu.easy.rpc.core.serialize.jdk.JdkSerializeFactory;
-import com.shaogezhu.easy.rpc.core.serialize.kryo.KryoSerializeFactory;
+import com.shaogezhu.easy.rpc.core.serialize.SerializeFactory;
 import com.shaogezhu.easy.rpc.core.server.impl.DataServiceImpl;
 import com.shaogezhu.easy.rpc.core.server.impl.UserServiceImpl;
 import io.netty.bootstrap.ServerBootstrap;
@@ -23,8 +20,19 @@ import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
 
-import static com.shaogezhu.easy.rpc.core.common.cache.CommonServerCache.*;
-import static com.shaogezhu.easy.rpc.core.common.constants.RpcConstants.*;
+import java.io.IOException;
+import java.util.LinkedHashMap;
+import java.util.Map;
+
+import static com.shaogezhu.easy.rpc.core.common.cache.CommonClientCache.EXTENSION_LOADER;
+import static com.shaogezhu.easy.rpc.core.common.cache.CommonServerCache.PROVIDER_CLASS_MAP;
+import static com.shaogezhu.easy.rpc.core.common.cache.CommonServerCache.PROVIDER_SERVICE_WRAPPER_MAP;
+import static com.shaogezhu.easy.rpc.core.common.cache.CommonServerCache.PROVIDER_URL_SET;
+import static com.shaogezhu.easy.rpc.core.common.cache.CommonServerCache.REGISTRY_SERVICE;
+import static com.shaogezhu.easy.rpc.core.common.cache.CommonServerCache.SERVER_CONFIG;
+import static com.shaogezhu.easy.rpc.core.common.cache.CommonServerCache.SERVER_FILTER_CHAIN;
+import static com.shaogezhu.easy.rpc.core.common.cache.CommonServerCache.SERVER_SERIALIZE_FACTORY;
+import static com.shaogezhu.easy.rpc.core.spi.ExtensionLoader.EXTENSION_LOADER_CLASS_CACHE;
 
 /**
  * @Author peng
@@ -32,7 +40,7 @@ import static com.shaogezhu.easy.rpc.core.common.constants.RpcConstants.*;
  */
 public class Server {
 
-    public void startServerApplication() throws InterruptedException {
+    public void startServerApplication() throws InterruptedException, IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
         NioEventLoopGroup bossGroup = new NioEventLoopGroup();
         NioEventLoopGroup workerGroup = new NioEventLoopGroup();
         ServerBootstrap bootstrap = new ServerBootstrap();
@@ -59,27 +67,27 @@ public class Server {
 
         //初始化序列化器
         String serverSerialize = SERVER_CONFIG.getServerSerialize();
-        switch (serverSerialize) {
-            case JDK_SERIALIZE_TYPE:
-                SERVER_SERIALIZE_FACTORY = new JdkSerializeFactory();
-                break;
-            case FAST_JSON_SERIALIZE_TYPE:
-                SERVER_SERIALIZE_FACTORY = new FastJsonSerializeFactory();
-                break;
-            case HESSIAN2_SERIALIZE_TYPE:
-                SERVER_SERIALIZE_FACTORY = new HessianSerializeFactory();
-                break;
-            case KRYO_SERIALIZE_TYPE:
-                SERVER_SERIALIZE_FACTORY = new KryoSerializeFactory();
-                break;
-            default:
-                throw new RuntimeException("no match serialize type for" + serverSerialize);
+        EXTENSION_LOADER.loadExtension(SerializeFactory.class);
+        LinkedHashMap<String, Class<?>> serializeMap = EXTENSION_LOADER_CLASS_CACHE.get(SerializeFactory.class.getName());
+        Class<?> serializeClass = serializeMap.get(serverSerialize);
+        if (serializeClass == null) {
+            throw new RuntimeException("no match serializeClass for " + serverSerialize);
         }
+        SERVER_SERIALIZE_FACTORY = (SerializeFactory) serializeClass.newInstance();
+
 
         //初始化过滤链
         ServerFilterChain serverFilterChain = new ServerFilterChain();
-        serverFilterChain.addServerFilter(new ServerLogFilterImpl());
-        serverFilterChain.addServerFilter(new ServerTokenFilterImpl());
+        EXTENSION_LOADER.loadExtension(ServerFilter.class);
+        LinkedHashMap<String, Class<?>> filterChainMap = EXTENSION_LOADER_CLASS_CACHE.get(ServerFilter.class.getName());
+        for (Map.Entry<String, Class<?>> filterChainEntry : filterChainMap.entrySet()) {
+            String filterChainKey = filterChainEntry.getKey();
+            Class<?> filterChainImpl = filterChainEntry.getValue();
+            if (filterChainImpl == null) {
+                throw new RuntimeException("no match filterChainImpl for " + filterChainKey);
+            }
+            serverFilterChain.addServerFilter((ServerFilter) filterChainImpl.newInstance());
+        }
         SERVER_FILTER_CHAIN = serverFilterChain;
 
         //暴露服务端url
@@ -92,6 +100,7 @@ public class Server {
         ServerConfig serverConfig = new ServerConfig();
         serverConfig.setPort(8010);
         serverConfig.setRegisterAddr("localhost:2181");
+        serverConfig.setRegisterType("zookeeper");
         serverConfig.setApplicationName("easy-rpc-server");
         serverConfig.setServerSerialize("kryo");
         SERVER_CONFIG = serverConfig;
@@ -127,7 +136,14 @@ public class Server {
             throw new RuntimeException("service must only had one interfaces!");
         }
         if (REGISTRY_SERVICE == null) {
-            REGISTRY_SERVICE = new ZookeeperRegister(SERVER_CONFIG.getRegisterAddr());
+            try {
+                EXTENSION_LOADER.loadExtension(RegistryService.class);
+                Map<String, Class<?>> registryClassMap = EXTENSION_LOADER_CLASS_CACHE.get(RegistryService.class.getName());
+                Class<?> registryClass = registryClassMap.get(SERVER_CONFIG.getRegisterType());
+                REGISTRY_SERVICE = (AbstractRegister) registryClass.newInstance();
+            } catch (Exception e) {
+                throw new RuntimeException("registryServiceType unKnow,error is ", e);
+            }
         }
         //默认选择该对象的第一个实现接口
         Class<?> interfaceClass = classes[0];
@@ -145,7 +161,7 @@ public class Server {
         }
     }
 
-    public static void main(String[] args) throws InterruptedException {
+    public static void main(String[] args) throws InterruptedException, IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
         Server server = new Server();
         //初始化配置
         server.initServerConfig();

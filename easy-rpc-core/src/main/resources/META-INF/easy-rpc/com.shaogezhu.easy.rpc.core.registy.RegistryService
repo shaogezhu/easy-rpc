@@ -1,0 +1,1 @@
+zookeeper=com.shaogezhu.easy.rpc.core.registy.zookeeper.ZookeeperRegister

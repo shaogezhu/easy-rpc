@@ -1,0 +1,4 @@
+fastJson=com.shaogezhu.easy.rpc.core.serialize.fastjson.FastJsonSerializeFactory
+hessian=com.shaogezhu.easy.rpc.core.serialize.hessian.HessianSerializeFactory
+jdk=com.shaogezhu.easy.rpc.core.serialize.jdk.JdkSerializeFactory
+kryo=com.shaogezhu.easy.rpc.core.serialize.kryo.KryoSerializeFactory

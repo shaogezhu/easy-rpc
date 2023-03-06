@@ -18,6 +18,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
+import static com.shaogezhu.easy.rpc.core.common.cache.CommonClientCache.CLIENT_CONFIG;
+import static com.shaogezhu.easy.rpc.core.common.cache.CommonServerCache.SERVER_CONFIG;
+
 /**
  * @Author peng
  * @Date 2023/2/27
@@ -29,8 +32,9 @@ public class ZookeeperRegister extends AbstractRegister implements RegistryServi
 
     private final String ROOT = "/easy-rpc";
 
-    public ZookeeperRegister(String address) {
-        this.zkClient = new CuratorZookeeperClient(address);
+    public ZookeeperRegister() {
+        String registryAddr = CLIENT_CONFIG!= null ? CLIENT_CONFIG.getRegisterAddr() : SERVER_CONFIG.getRegisterAddr();
+        this.zkClient = new CuratorZookeeperClient(registryAddr);
     }
 
     private String getProviderPath(URL url) {
@@ -105,11 +109,11 @@ public class ZookeeperRegister extends AbstractRegister implements RegistryServi
     /**
      * 订阅服务子节点的数据变化（key的变化）
      */
-    public void watchChildNodeData(String newServerNodePath){
+    public void watchChildNodeData(String newServerNodePath) {
         zkClient.watchChildNodeData(newServerNodePath, new Watcher() {
             @Override
             public void process(WatchedEvent watchedEvent) {
-                System.out.println("watchedEvent:"+watchedEvent);
+                System.out.println("watchChildNodeData:" + watchedEvent);
                 String path = watchedEvent.getPath();
                 List<String> childrenDataList = zkClient.getChildrenData(path);
                 URLChangeWrapper urlChangeWrapper = new URLChangeWrapper();
@@ -131,6 +135,7 @@ public class ZookeeperRegister extends AbstractRegister implements RegistryServi
         zkClient.watchNodeData(newServerNodePath, new Watcher() {
             @Override
             public void process(WatchedEvent watchedEvent) {
+                System.out.println("watchNodeDataChange:" + watchedEvent);
                 String path = watchedEvent.getPath();
                 String nodeData = zkClient.getNodeData(path);
                 ProviderNodeInfo providerNodeInfo = URL.buildUrlFromUrlStr(nodeData);

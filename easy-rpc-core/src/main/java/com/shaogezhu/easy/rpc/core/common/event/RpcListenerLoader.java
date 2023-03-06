@@ -1,17 +1,19 @@
 package com.shaogezhu.easy.rpc.core.common.event;
 
-import com.shaogezhu.easy.rpc.core.common.event.listener.ProviderNodeUpdateListener;
 import com.shaogezhu.easy.rpc.core.common.event.listener.RpcListener;
-import com.shaogezhu.easy.rpc.core.common.event.listener.ServiceDestroyListener;
-import com.shaogezhu.easy.rpc.core.common.event.listener.ServiceUpdateListener;
 import com.shaogezhu.easy.rpc.core.common.utils.CommonUtil;
 
 import java.lang.reflect.ParameterizedType;
 import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+
+import static com.shaogezhu.easy.rpc.core.common.cache.CommonClientCache.EXTENSION_LOADER;
+import static com.shaogezhu.easy.rpc.core.spi.ExtensionLoader.EXTENSION_LOADER_CLASS_CACHE;
 
 /**
  * @Author peng
@@ -29,9 +31,17 @@ public class RpcListenerLoader {
     }
 
     public void init() {
-        registerListener(new ServiceUpdateListener());
-        registerListener(new ServiceDestroyListener());
-        registerListener(new ProviderNodeUpdateListener());
+        try {
+            EXTENSION_LOADER.loadExtension(RpcListener.class);
+            LinkedHashMap<String, Class<?>> listenerMap = EXTENSION_LOADER_CLASS_CACHE.get(RpcListener.class.getName());
+            for (Map.Entry<String, Class<?>> listenerEntry : listenerMap.entrySet()) {
+                String key = listenerEntry.getKey();
+                Class<?> listener = listenerEntry.getValue();
+                registerListener((RpcListener<?>) listener.newInstance());
+            }
+        } catch (Exception e) {
+            throw new RuntimeException("registerListener unKnow,error is ", e);
+        }
     }
 
     public static void sendEvent(RpcEvent rpcEvent) {
@@ -56,7 +66,6 @@ public class RpcListenerLoader {
      * 同步事件处理，可能会堵塞
      */
     public static void sendSyncEvent(RpcEvent iRpcEvent) {
-        System.out.println("rpcListenerList："+rpcListenerList);
         if (CommonUtil.isEmptyList(rpcListenerList)) {
             return;
         }

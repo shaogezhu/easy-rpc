@@ -9,6 +9,8 @@ public class ClientConfig {
 
     private String registerAddr;
 
+    private String registerType;
+
     private String applicationName;
 
     /**
@@ -64,5 +66,13 @@ public class ClientConfig {
 
     public void setClientSerialize(String clientSerialize) {
         this.clientSerialize = clientSerialize;
+    }
+
+    public String getRegisterType() {
+        return registerType;
+    }
+
+    public void setRegisterType(String registerType) {
+        this.registerType = registerType;
     }
 }
