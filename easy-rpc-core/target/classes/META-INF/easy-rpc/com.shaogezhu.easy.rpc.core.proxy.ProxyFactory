@@ -1,0 +1,2 @@
+jdk=com.shaogezhu.easy.rpc.core.proxy.jdk.JDKProxyFactory
+javassist=com.shaogezhu.easy.rpc.core.proxy.javassist.JavassistProxyFactory

@@ -1,0 +1,3 @@
+providerNodeUpdateListener=com.shaogezhu.easy.rpc.core.common.event.listener.ProviderNodeUpdateListener
+serviceDestroyListener=com.shaogezhu.easy.rpc.core.common.event.listener.ServiceDestroyListener
+serviceUpdateListener=com.shaogezhu.easy.rpc.core.common.event.listener.ServiceUpdateListener

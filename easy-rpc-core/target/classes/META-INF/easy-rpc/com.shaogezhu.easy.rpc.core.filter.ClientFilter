@@ -1,0 +1,3 @@
+clientLogFilterImpl=com.shaogezhu.easy.rpc.core.filter.client.ClientLogFilterImpl
+directInvokeFilterImpl=com.shaogezhu.easy.rpc.core.filter.client.DirectInvokeFilterImpl
+groupFilterImpl=com.shaogezhu.easy.rpc.core.filter.client.GroupFilterImpl
