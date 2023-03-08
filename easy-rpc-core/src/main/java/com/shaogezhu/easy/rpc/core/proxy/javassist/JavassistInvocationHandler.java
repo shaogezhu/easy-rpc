@@ -36,6 +36,10 @@ public class JavassistInvocationHandler implements InvocationHandler {
         rpcInvocation.setUuid(UUID.randomUUID().toString());
         RESP_MAP.put(rpcInvocation.getUuid(), OBJECT);
         SEND_QUEUE.add(rpcInvocation);
+        //如果是异步请求，就没有必要再在RESP_MAP中判断是否有响应结果了
+        if (rpcReferenceWrapper.isAsync()) {
+            return null;
+        }
         long beginTime = System.currentTimeMillis();
         while (System.currentTimeMillis() - beginTime < 3*1000) {
             Object object = RESP_MAP.get(rpcInvocation.getUuid());

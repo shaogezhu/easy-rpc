@@ -29,6 +29,7 @@ import static com.shaogezhu.easy.rpc.core.common.cache.CommonServerCache.PROVIDE
 import static com.shaogezhu.easy.rpc.core.common.cache.CommonServerCache.PROVIDER_SERVICE_WRAPPER_MAP;
 import static com.shaogezhu.easy.rpc.core.common.cache.CommonServerCache.PROVIDER_URL_SET;
 import static com.shaogezhu.easy.rpc.core.common.cache.CommonServerCache.REGISTRY_SERVICE;
+import static com.shaogezhu.easy.rpc.core.common.cache.CommonServerCache.SERVER_CHANNEL_DISPATCHER;
 import static com.shaogezhu.easy.rpc.core.common.cache.CommonServerCache.SERVER_CONFIG;
 import static com.shaogezhu.easy.rpc.core.common.cache.CommonServerCache.SERVER_FILTER_CHAIN;
 import static com.shaogezhu.easy.rpc.core.common.cache.CommonServerCache.SERVER_SERIALIZE_FACTORY;
@@ -90,6 +91,10 @@ public class Server {
         }
         SERVER_FILTER_CHAIN = serverFilterChain;
 
+        //初始化请求分发器
+        SERVER_CHANNEL_DISPATCHER.init(SERVER_CONFIG.getServerQueueSize(), SERVER_CONFIG.getServerBizThreadNums());
+        SERVER_CHANNEL_DISPATCHER.startDataConsume();
+
         //暴露服务端url
         this.batchExportUrl();
         bootstrap.bind(SERVER_CONFIG.getPort()).sync();
@@ -103,6 +108,8 @@ public class Server {
         serverConfig.setRegisterType("zookeeper");
         serverConfig.setApplicationName("easy-rpc-server");
         serverConfig.setServerSerialize("kryo");
+        serverConfig.setServerQueueSize(5000);
+        serverConfig.setServerBizThreadNums(16);
         SERVER_CONFIG = serverConfig;
     }
 

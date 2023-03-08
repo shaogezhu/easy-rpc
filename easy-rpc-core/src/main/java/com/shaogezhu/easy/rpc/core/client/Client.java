@@ -236,7 +236,7 @@ public class Client {
         List<String> list = dataService.getList();
         System.out.println(list);
 
-        for (int i = 100; i < 103; ++i) {
+        for (int i = 100; i < 105; ++i) {
             Thread.sleep(1000);
             String msg = i+":msg from client.";
             String s = dataService.sendData(msg);
@@ -250,6 +250,7 @@ public class Client {
         rpcReferenceWrapper2.setAimClass(UserService.class);
         rpcReferenceWrapper2.setGroup("test");
         rpcReferenceWrapper2.setServiceToken("token-b");
+        rpcReferenceWrapper2.setAsync(true);
 //        rpcReferenceWrapper2.setUrl("192.168.31.123:8010");
         UserService userService = rpcReference.get(rpcReferenceWrapper2);
         //调用远程方法
