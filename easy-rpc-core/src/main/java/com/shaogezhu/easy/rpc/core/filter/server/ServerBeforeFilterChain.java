@@ -9,9 +9,9 @@ import java.util.List;
 /**
  * @Author peng
  * @Date 2023/3/4
- * @description: 服务端模块的过滤链设计
+ * @description: 服务端模块的前置过滤链设计
  */
-public class ServerFilterChain {
+public class ServerBeforeFilterChain {
 
     private static List<ServerFilter> serverFilters = new ArrayList<>();
 

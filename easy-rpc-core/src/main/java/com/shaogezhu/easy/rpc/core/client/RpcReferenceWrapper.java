@@ -22,6 +22,24 @@ public class RpcReferenceWrapper<T> {
         this.aimClass = aimClass;
     }
 
+    /**
+     * 失败重试次数
+     */
+    public int getRetry(){
+        return (int) attatchments.getOrDefault("retry",0);
+    }
+
+    public void setRetry(int retry){
+        this.attatchments.put("retry",retry);
+    }
+
+    public void setTimeOut(int timeOut) {
+        attatchments.put("timeOut", timeOut);
+    }
+
+    public String getTimeOut() {
+        return (String) (attatchments.get("timeOut"));
+    }
     public boolean isAsync(){
         return Boolean.parseBoolean(String.valueOf(attatchments.get("async")));
     }

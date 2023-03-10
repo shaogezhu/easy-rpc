@@ -2,11 +2,14 @@ package com.shaogezhu.easy.rpc.core.server;
 
 import com.shaogezhu.easy.rpc.core.common.RpcDecoder;
 import com.shaogezhu.easy.rpc.core.common.RpcEncoder;
+import com.shaogezhu.easy.rpc.core.common.ServerServiceSemaphoreWrapper;
+import com.shaogezhu.easy.rpc.core.common.annotations.SPI;
 import com.shaogezhu.easy.rpc.core.common.config.ServerConfig;
 import com.shaogezhu.easy.rpc.core.common.event.RpcListenerLoader;
 import com.shaogezhu.easy.rpc.core.common.utils.CommonUtil;
 import com.shaogezhu.easy.rpc.core.filter.ServerFilter;
-import com.shaogezhu.easy.rpc.core.filter.server.ServerFilterChain;
+import com.shaogezhu.easy.rpc.core.filter.server.ServerAfterFilterChain;
+import com.shaogezhu.easy.rpc.core.filter.server.ServerBeforeFilterChain;
 import com.shaogezhu.easy.rpc.core.registy.AbstractRegister;
 import com.shaogezhu.easy.rpc.core.registy.RegistryService;
 import com.shaogezhu.easy.rpc.core.registy.URL;
@@ -14,11 +17,14 @@ import com.shaogezhu.easy.rpc.core.serialize.SerializeFactory;
 import com.shaogezhu.easy.rpc.core.server.impl.DataServiceImpl;
 import com.shaogezhu.easy.rpc.core.server.impl.UserServiceImpl;
 import io.netty.bootstrap.ServerBootstrap;
+import io.netty.buffer.ByteBuf;
+import io.netty.buffer.Unpooled;
 import io.netty.channel.ChannelInitializer;
 import io.netty.channel.ChannelOption;
 import io.netty.channel.nio.NioEventLoopGroup;
 import io.netty.channel.socket.SocketChannel;
 import io.netty.channel.socket.nio.NioServerSocketChannel;
+import io.netty.handler.codec.DelimiterBasedFrameDecoder;
 
 import java.io.IOException;
 import java.util.LinkedHashMap;
@@ -29,10 +35,13 @@ import static com.shaogezhu.easy.rpc.core.common.cache.CommonServerCache.PROVIDE
 import static com.shaogezhu.easy.rpc.core.common.cache.CommonServerCache.PROVIDER_SERVICE_WRAPPER_MAP;
 import static com.shaogezhu.easy.rpc.core.common.cache.CommonServerCache.PROVIDER_URL_SET;
 import static com.shaogezhu.easy.rpc.core.common.cache.CommonServerCache.REGISTRY_SERVICE;
+import static com.shaogezhu.easy.rpc.core.common.cache.CommonServerCache.SERVER_BEFORE_FILTER_CHAIN;
+import static com.shaogezhu.easy.rpc.core.common.cache.CommonServerCache.SERVER_AFTER_FILTER_CHAIN;
 import static com.shaogezhu.easy.rpc.core.common.cache.CommonServerCache.SERVER_CHANNEL_DISPATCHER;
 import static com.shaogezhu.easy.rpc.core.common.cache.CommonServerCache.SERVER_CONFIG;
-import static com.shaogezhu.easy.rpc.core.common.cache.CommonServerCache.SERVER_FILTER_CHAIN;
 import static com.shaogezhu.easy.rpc.core.common.cache.CommonServerCache.SERVER_SERIALIZE_FACTORY;
+import static com.shaogezhu.easy.rpc.core.common.cache.CommonServerCache.SERVER_SERVICE_SEMAPHORE_MAP;
+import static com.shaogezhu.easy.rpc.core.common.constants.RpcConstants.DEFAULT_DECODE_CHAR;
 import static com.shaogezhu.easy.rpc.core.spi.ExtensionLoader.EXTENSION_LOADER_CLASS_CACHE;
 
 /**
@@ -53,9 +62,14 @@ public class Server {
                 .option(ChannelOption.SO_RCVBUF, 16 * 1024)
                 .option(ChannelOption.SO_KEEPALIVE, true);
 
+        //服务端采用单一长连接的模式，这里所支持的最大连接数和机器本身的性能有关
+        //连接防护的handler应该绑定在Main-Reactor上
+        bootstrap.handler(new MaxConnectionLimitHandler(SERVER_CONFIG.getMaxConnections()));
         bootstrap.childHandler(new ChannelInitializer<SocketChannel>() {
             @Override
             protected void initChannel(SocketChannel ch) throws Exception {
+                ByteBuf delimiter = Unpooled.copiedBuffer(DEFAULT_DECODE_CHAR.getBytes());
+                ch.pipeline().addLast(new DelimiterBasedFrameDecoder(SERVER_CONFIG.getMaxServerRequestData(), delimiter));
                 ch.pipeline().addLast(new RpcEncoder());
                 ch.pipeline().addLast(new RpcDecoder());
                 ch.pipeline().addLast(new ServerHandler());
@@ -78,7 +92,8 @@ public class Server {
 
 
         //初始化过滤链
-        ServerFilterChain serverFilterChain = new ServerFilterChain();
+        ServerBeforeFilterChain serverBeforeFilterChain = new ServerBeforeFilterChain();
+        ServerAfterFilterChain serverAfterFilterChain = new ServerAfterFilterChain();
         EXTENSION_LOADER.loadExtension(ServerFilter.class);
         LinkedHashMap<String, Class<?>> filterChainMap = EXTENSION_LOADER_CLASS_CACHE.get(ServerFilter.class.getName());
         for (Map.Entry<String, Class<?>> filterChainEntry : filterChainMap.entrySet()) {
@@ -87,9 +102,15 @@ public class Server {
             if (filterChainImpl == null) {
                 throw new RuntimeException("no match filterChainImpl for " + filterChainKey);
             }
-            serverFilterChain.addServerFilter((ServerFilter) filterChainImpl.newInstance());
+            SPI spi = (SPI) filterChainImpl.getDeclaredAnnotation(SPI.class);
+            if (spi != null && "before".equalsIgnoreCase(spi.value())) {
+                serverBeforeFilterChain.addServerFilter((ServerFilter) filterChainImpl.newInstance());
+            } else if (spi != null && "after".equalsIgnoreCase(spi.value())) {
+                serverAfterFilterChain.addServerFilter((ServerFilter) filterChainImpl.newInstance());
+            }
         }
-        SERVER_FILTER_CHAIN = serverFilterChain;
+        SERVER_BEFORE_FILTER_CHAIN = serverBeforeFilterChain;
+        SERVER_AFTER_FILTER_CHAIN = serverAfterFilterChain;
 
         //初始化请求分发器
         SERVER_CHANNEL_DISPATCHER.init(SERVER_CONFIG.getServerQueueSize(), SERVER_CONFIG.getServerBizThreadNums());
@@ -110,6 +131,8 @@ public class Server {
         serverConfig.setServerSerialize("kryo");
         serverConfig.setServerQueueSize(5000);
         serverConfig.setServerBizThreadNums(16);
+        serverConfig.setMaxConnections(512);
+        serverConfig.setMaxServerRequestData(1000);
         SERVER_CONFIG = serverConfig;
     }
 
@@ -163,6 +186,7 @@ public class Server {
         url.addParameter("group", String.valueOf(serviceWrapper.getGroup()));
         url.addParameter("limit", String.valueOf(serviceWrapper.getLimit()));
         PROVIDER_URL_SET.add(url);
+        SERVER_SERVICE_SEMAPHORE_MAP.put(interfaceClass.getName(), new ServerServiceSemaphoreWrapper(serviceWrapper.getLimit()));
         if (CommonUtil.isNotEmpty(serviceWrapper.getServiceToken())) {
             PROVIDER_SERVICE_WRAPPER_MAP.put(interfaceClass.getName(), serviceWrapper);
         }
@@ -176,11 +200,13 @@ public class Server {
         ServiceWrapper serviceWrapper1 = new ServiceWrapper(new DataServiceImpl());
         serviceWrapper1.setGroup("dev");
         serviceWrapper1.setServiceToken("token-a");
+        serviceWrapper1.setLimit(2);
         server.registyService(serviceWrapper1);
 
         ServiceWrapper serviceWrapper2 = new ServiceWrapper(new UserServiceImpl());
         serviceWrapper2.setGroup("test");
         serviceWrapper2.setServiceToken("token-b");
+//        serviceWrapper2.setLimit(4);
         server.registyService(serviceWrapper2);
 
         //设置回调

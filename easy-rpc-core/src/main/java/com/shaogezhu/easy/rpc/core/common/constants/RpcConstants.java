@@ -24,4 +24,8 @@ public class RpcConstants {
     public static final String HESSIAN2_SERIALIZE_TYPE = "hessian2";
 
     public static final String KRYO_SERIALIZE_TYPE = "kryo";
+
+    public static final String DEFAULT_DECODE_CHAR = "$_i0#Csoy1_$";
+
+    public static final Integer DEFAULT_TIMEOUT = 3000;
 }

@@ -28,6 +28,16 @@ public class ClientConfig {
      */
     private String clientSerialize;
 
+    /**
+     * 客户端发数据的超时时间
+     */
+    private Integer timeOut;
+
+    /**
+     * 客户端最大响应数据体积
+     */
+    private Integer maxServerRespDataSize;
+
     public String getRegisterAddr() {
         return registerAddr;
     }
@@ -74,5 +84,21 @@ public class ClientConfig {
 
     public void setRegisterType(String registerType) {
         this.registerType = registerType;
+    }
+
+    public Integer getTimeOut() {
+        return timeOut;
+    }
+
+    public void setTimeOut(Integer timeOut) {
+        this.timeOut = timeOut;
+    }
+
+    public Integer getMaxServerRespDataSize() {
+        return maxServerRespDataSize;
+    }
+
+    public void setMaxServerRespDataSize(Integer maxServerRespDataSize) {
+        this.maxServerRespDataSize = maxServerRespDataSize;
     }
 }

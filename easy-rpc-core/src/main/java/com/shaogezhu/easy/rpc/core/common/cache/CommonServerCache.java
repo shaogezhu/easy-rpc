@@ -1,8 +1,10 @@
 package com.shaogezhu.easy.rpc.core.common.cache;
 
+import com.shaogezhu.easy.rpc.core.common.ServerServiceSemaphoreWrapper;
 import com.shaogezhu.easy.rpc.core.common.config.ServerConfig;
 import com.shaogezhu.easy.rpc.core.dispatcher.ServerChannelDispatcher;
-import com.shaogezhu.easy.rpc.core.filter.server.ServerFilterChain;
+import com.shaogezhu.easy.rpc.core.filter.server.ServerAfterFilterChain;
+import com.shaogezhu.easy.rpc.core.filter.server.ServerBeforeFilterChain;
 import com.shaogezhu.easy.rpc.core.registy.RegistryService;
 import com.shaogezhu.easy.rpc.core.registy.URL;
 import com.shaogezhu.easy.rpc.core.serialize.SerializeFactory;
@@ -39,7 +41,8 @@ public class CommonServerCache {
     /**
      * 服务端过滤链
      */
-    public static ServerFilterChain SERVER_FILTER_CHAIN;
+    public static ServerBeforeFilterChain SERVER_BEFORE_FILTER_CHAIN;
+    public static ServerAfterFilterChain SERVER_AFTER_FILTER_CHAIN;
     /**
      * 服务端配置类
      */
@@ -52,4 +55,8 @@ public class CommonServerCache {
      * 请求分发器
      */
     public static ServerChannelDispatcher SERVER_CHANNEL_DISPATCHER = new ServerChannelDispatcher();
+    /**
+     * 用于服务端限流
+     */
+    public static final Map<String, ServerServiceSemaphoreWrapper> SERVER_SERVICE_SEMAPHORE_MAP = new ConcurrentHashMap<>(64);
 }

@@ -1,6 +1,7 @@
 package com.shaogezhu.easy.rpc.core.filter.server;
 
 import com.shaogezhu.easy.rpc.core.common.RpcInvocation;
+import com.shaogezhu.easy.rpc.core.common.annotations.SPI;
 import com.shaogezhu.easy.rpc.core.common.utils.CommonUtil;
 import com.shaogezhu.easy.rpc.core.filter.ServerFilter;
 import com.shaogezhu.easy.rpc.core.server.ServiceWrapper;
@@ -12,6 +13,7 @@ import static com.shaogezhu.easy.rpc.core.common.cache.CommonServerCache.PROVIDE
  * @Date 2023/3/4
  * @description: 简单版本的token校验
  */
+@SPI("before")
 public class ServerTokenFilterImpl implements ServerFilter {
 
     @Override

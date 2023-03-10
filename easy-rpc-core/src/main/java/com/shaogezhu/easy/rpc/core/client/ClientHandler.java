@@ -19,6 +19,9 @@ public class ClientHandler extends ChannelInboundHandlerAdapter {
     public void channelRead(ChannelHandlerContext ctx, Object msg) throws Exception {
         RpcProtocol rpcProtocol = (RpcProtocol) msg;
         RpcInvocation rpcInvocation = CLIENT_SERIALIZE_FACTORY.deserialize(rpcProtocol.getContent(), RpcInvocation.class);
+        if (rpcInvocation.getE() != null) {
+            rpcInvocation.getE().printStackTrace();
+        }
         //通过之前发送的uuid来注入匹配的响应数值
         if(!RESP_MAP.containsKey(rpcInvocation.getUuid())){
             throw new IllegalArgumentException("server response is error!");

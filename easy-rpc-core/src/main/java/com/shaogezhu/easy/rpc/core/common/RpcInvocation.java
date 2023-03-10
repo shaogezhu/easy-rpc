@@ -35,6 +35,30 @@ public class RpcInvocation implements Serializable {
      * 接口响应的数据（如果是异步调用或者void类型，这里就为空）
      */
     private Object response;
+    /**
+     * 记录服务端抛出的异常信息
+     */
+    private Throwable e;
+    /**
+     * 失败重试次数
+     */
+    private int retry;
+
+    public Throwable getE() {
+        return e;
+    }
+
+    public void setE(Throwable e) {
+        this.e = e;
+    }
+
+    public int getRetry() {
+        return retry;
+    }
+
+    public void setRetry(int retry) {
+        this.retry = retry;
+    }
 
     private Map<String, Object> attachments = new ConcurrentHashMap<>();
 
