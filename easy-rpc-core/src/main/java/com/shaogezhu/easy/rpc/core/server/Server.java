@@ -14,8 +14,6 @@ import com.shaogezhu.easy.rpc.core.registy.AbstractRegister;
 import com.shaogezhu.easy.rpc.core.registy.RegistryService;
 import com.shaogezhu.easy.rpc.core.registy.URL;
 import com.shaogezhu.easy.rpc.core.serialize.SerializeFactory;
-import com.shaogezhu.easy.rpc.core.server.impl.DataServiceImpl;
-import com.shaogezhu.easy.rpc.core.server.impl.UserServiceImpl;
 import io.netty.bootstrap.ServerBootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -119,7 +117,6 @@ public class Server {
         //暴露服务端url
         this.batchExportUrl();
         bootstrap.bind(SERVER_CONFIG.getPort()).sync();
-        System.out.println("========== Server start success ==========");
     }
 
     public void initServerConfig() {
@@ -184,27 +181,28 @@ public class Server {
         }
     }
 
-    public static void main(String[] args) throws InterruptedException, IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
-        Server server = new Server();
-        //初始化配置
-        server.initServerConfig();
-        //注册服务
-        ServiceWrapper serviceWrapper1 = new ServiceWrapper(new DataServiceImpl());
-        serviceWrapper1.setGroup("dev");
-        serviceWrapper1.setServiceToken("token-a");
-        serviceWrapper1.setLimit(2);
-        server.registyService(serviceWrapper1);
-
-        ServiceWrapper serviceWrapper2 = new ServiceWrapper(new UserServiceImpl());
-        serviceWrapper2.setGroup("test");
-        serviceWrapper2.setServiceToken("token-b");
-//        serviceWrapper2.setLimit(4);
-        server.registyService(serviceWrapper2);
-
-        //设置回调
-        ServerShutdownHook.registryShutdownHook();
-        //启动服务
-        server.startServerApplication();
-    }
+//    public static void main(String[] args) throws InterruptedException, IOException, ClassNotFoundException, InstantiationException, IllegalAccessException {
+//        Server server = new Server();
+//        //初始化配置
+//        server.initServerConfig();
+//        //注册服务
+//        ServiceWrapper serviceWrapper1 = new ServiceWrapper(new DataServiceImpl());
+//        serviceWrapper1.setGroup("dev");
+//        serviceWrapper1.setServiceToken("token-a");
+//        serviceWrapper1.setLimit(2);
+//        server.registyService(serviceWrapper1);
+//
+//        ServiceWrapper serviceWrapper2 = new ServiceWrapper(new UserServiceImpl());
+//        serviceWrapper2.setGroup("test");
+//        serviceWrapper2.setServiceToken("token-b");
+////        serviceWrapper2.setLimit(4);
+//        server.registyService(serviceWrapper2);
+//
+//        //设置回调
+//        ServerShutdownHook.registryShutdownHook();
+//        //启动服务
+//        server.startServerApplication();
+//        System.out.println("========== Server start success ==========");
+//    }
 
 }

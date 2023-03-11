@@ -16,8 +16,6 @@ import com.shaogezhu.easy.rpc.core.registy.RegistryService;
 import com.shaogezhu.easy.rpc.core.registy.URL;
 import com.shaogezhu.easy.rpc.core.router.Router;
 import com.shaogezhu.easy.rpc.core.serialize.SerializeFactory;
-import com.shaogezhu.easy.rpc.interfaces.DataService;
-import com.shaogezhu.easy.rpc.interfaces.UserService;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.buffer.ByteBuf;
 import io.netty.buffer.Unpooled;
@@ -180,7 +178,7 @@ public class Client {
     /**
      * 开启发送线程，专门从事将数据包发送给服务端
      */
-    private void startClient() {
+    public void startClient() {
         Thread asyncSendJob = new Thread(new AsyncSendJob(), "ClientAsyncSendJobThread");
         asyncSendJob.start();
     }
@@ -213,58 +211,58 @@ public class Client {
         }
     }
 
-    public static void main(String[] args) throws Throwable {
-
-        Client client = new Client();
-        //初始化配置文件
-        client.initClientConfig();
-        //初始化客户端
-        RpcReference rpcReference = client.initClientApplication();
-
-        //订阅服务
-        client.doSubscribeService(DataService.class);
-        client.doSubscribeService(UserService.class);
-
-        //建立连接
-        client.doConnectServer();
-        //启动客户端
-        client.startClient();
-        System.out.println("========== Client start success ==========");
-
-        //生成代理对象DataService
-        RpcReferenceWrapper<DataService> rpcReferenceWrapper1 = new RpcReferenceWrapper<>();
-        rpcReferenceWrapper1.setAimClass(DataService.class);
-        rpcReferenceWrapper1.setGroup("dev");
-        rpcReferenceWrapper1.setServiceToken("token-a");
-        rpcReferenceWrapper1.setUrl("192.168.31.128:8010");
-        rpcReferenceWrapper1.setRetry(1);
-        rpcReferenceWrapper1.setTimeOut(CLIENT_CONFIG.getTimeOut());
-        DataService dataService = rpcReference.get(rpcReferenceWrapper1);
-        //调用远程方法
-        List<String> list = dataService.getList();
-        System.out.println(list);
-
-        for (int i = 100; i < 105; ++i) {
-            Thread.sleep(1000);
-            String msg = i+":msg from client.";
-            String s = dataService.sendData(msg);
-            System.out.println(i+":"+s);
-        }
-//        dataService.testError();
-//        dataService.testErrorV2();
-
-        //生成代理对象UserService
-        RpcReferenceWrapper<UserService> rpcReferenceWrapper2 = new RpcReferenceWrapper<>();
-        rpcReferenceWrapper2.setAimClass(UserService.class);
-        rpcReferenceWrapper2.setGroup("test");
-        rpcReferenceWrapper2.setServiceToken("token-b");
-        rpcReferenceWrapper2.setRetry(3);
-        rpcReferenceWrapper2.setAsync(true);
-//        rpcReferenceWrapper2.setUrl("192.168.31.123:8010");
-        UserService userService = rpcReference.get(rpcReferenceWrapper2);
-        //调用远程方法
-        userService.test();
-
-    }
+//    public static void main(String[] args) throws Throwable {
+//
+//        Client client = new Client();
+//        //初始化配置文件
+//        client.initClientConfig();
+//        //初始化客户端
+//        RpcReference rpcReference = client.initClientApplication();
+//
+//        //订阅服务
+//        client.doSubscribeService(DataService.class);
+//        client.doSubscribeService(UserService.class);
+//
+//        //建立连接
+//        client.doConnectServer();
+//        //启动客户端
+//        client.startClient();
+//        System.out.println("========== Client start success ==========");
+//
+//        //生成代理对象DataService
+//        RpcReferenceWrapper<DataService> rpcReferenceWrapper1 = new RpcReferenceWrapper<>();
+//        rpcReferenceWrapper1.setAimClass(DataService.class);
+//        rpcReferenceWrapper1.setGroup("dev");
+//        rpcReferenceWrapper1.setServiceToken("token-a");
+//        rpcReferenceWrapper1.setUrl("192.168.31.128:8010");
+//        rpcReferenceWrapper1.setRetry(1);
+//        rpcReferenceWrapper1.setTimeOut(CLIENT_CONFIG.getTimeOut());
+//        DataService dataService = rpcReference.get(rpcReferenceWrapper1);
+//        //调用远程方法
+//        List<String> list = dataService.getList();
+//        System.out.println(list);
+//
+//        for (int i = 100; i < 105; ++i) {
+//            Thread.sleep(1000);
+//            String msg = i+":msg from client.";
+//            String s = dataService.sendData(msg);
+//            System.out.println(i+":"+s);
+//        }
+////        dataService.testError();
+////        dataService.testErrorV2();
+//
+//        //生成代理对象UserService
+//        RpcReferenceWrapper<UserService> rpcReferenceWrapper2 = new RpcReferenceWrapper<>();
+//        rpcReferenceWrapper2.setAimClass(UserService.class);
+//        rpcReferenceWrapper2.setGroup("test");
+//        rpcReferenceWrapper2.setServiceToken("token-b");
+//        rpcReferenceWrapper2.setRetry(3);
+//        rpcReferenceWrapper2.setAsync(true);
+////        rpcReferenceWrapper2.setUrl("192.168.31.123:8010");
+//        UserService userService = rpcReference.get(rpcReferenceWrapper2);
+//        //调用远程方法
+//        userService.test();
+//
+//    }
 
 }

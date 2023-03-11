@@ -79,7 +79,7 @@ public class PropertiesLoader {
             return defaultVal;
         }
         String value = properties.getProperty(key);
-        if (value == null) {
+        if (CommonUtil.isEmpty(value)) {
             propertiesMap.put(key, String.valueOf(defaultVal));
             return defaultVal;
         }

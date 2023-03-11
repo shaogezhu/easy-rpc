@@ -17,11 +17,11 @@ public class DirectInvokeFilterImpl implements ClientFilter {
     @Override
     public void doFilter(List<ChannelFutureWrapper> src, RpcInvocation rpcInvocation) {
         String url = (String) rpcInvocation.getAttachments().get("url");
-        if(url == null) return;
+        if (CommonUtil.isEmpty(url)) return;
 
         src.removeIf(channelFutureWrapper -> !(channelFutureWrapper.getHost() + ":" + channelFutureWrapper.getPort()).equals(url));
-        if(CommonUtil.isEmptyList(src)){
-            throw new RuntimeException("no match provider url for "+ url);
+        if (CommonUtil.isEmptyList(src)) {
+            throw new RuntimeException("no match provider url for " + url);
         }
     }
 }

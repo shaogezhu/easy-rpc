@@ -1,15 +1,17 @@
-package com.shaogezhu.easy.rpc.core.server.impl;
+package com.shaogezhu.easy.rpc.provider.springboot.service.impl;
 
 import com.shaogezhu.easy.rpc.interfaces.DataService;
+import com.shaogezhu.easy.rpc.spring.starter.common.EasyRpcService;
 
 import java.util.ArrayList;
 import java.util.List;
 
 /**
  * @Author peng
- * @Date 2023/2/25
+ * @Date 2023/3/11
  * @description:
  */
+@EasyRpcService(serviceToken = "data-token",group = "data-group",limit = 2)
 public class DataServiceImpl implements DataService {
 
     @Override

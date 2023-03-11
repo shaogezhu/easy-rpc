@@ -31,6 +31,11 @@ public class ServiceWrapper {
         this.serviceBean = serviceObj;
     }
 
+    public ServiceWrapper(Object serviceObj, String group) {
+        this.serviceBean = serviceObj;
+        this.group = group;
+    }
+
     public Object getServiceBean() {
         return serviceBean;
     }
