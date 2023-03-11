@@ -4,7 +4,7 @@ import com.shaogezhu.easy.rpc.core.common.RpcDecoder;
 import com.shaogezhu.easy.rpc.core.common.RpcEncoder;
 import com.shaogezhu.easy.rpc.core.common.ServerServiceSemaphoreWrapper;
 import com.shaogezhu.easy.rpc.core.common.annotations.SPI;
-import com.shaogezhu.easy.rpc.core.common.config.ServerConfig;
+import com.shaogezhu.easy.rpc.core.common.config.PropertiesBootstrap;
 import com.shaogezhu.easy.rpc.core.common.event.RpcListenerLoader;
 import com.shaogezhu.easy.rpc.core.common.utils.CommonUtil;
 import com.shaogezhu.easy.rpc.core.filter.ServerFilter;
@@ -35,8 +35,8 @@ import static com.shaogezhu.easy.rpc.core.common.cache.CommonServerCache.PROVIDE
 import static com.shaogezhu.easy.rpc.core.common.cache.CommonServerCache.PROVIDER_SERVICE_WRAPPER_MAP;
 import static com.shaogezhu.easy.rpc.core.common.cache.CommonServerCache.PROVIDER_URL_SET;
 import static com.shaogezhu.easy.rpc.core.common.cache.CommonServerCache.REGISTRY_SERVICE;
-import static com.shaogezhu.easy.rpc.core.common.cache.CommonServerCache.SERVER_BEFORE_FILTER_CHAIN;
 import static com.shaogezhu.easy.rpc.core.common.cache.CommonServerCache.SERVER_AFTER_FILTER_CHAIN;
+import static com.shaogezhu.easy.rpc.core.common.cache.CommonServerCache.SERVER_BEFORE_FILTER_CHAIN;
 import static com.shaogezhu.easy.rpc.core.common.cache.CommonServerCache.SERVER_CHANNEL_DISPATCHER;
 import static com.shaogezhu.easy.rpc.core.common.cache.CommonServerCache.SERVER_CONFIG;
 import static com.shaogezhu.easy.rpc.core.common.cache.CommonServerCache.SERVER_SERIALIZE_FACTORY;
@@ -123,17 +123,7 @@ public class Server {
     }
 
     public void initServerConfig() {
-        ServerConfig serverConfig = new ServerConfig();
-        serverConfig.setPort(8010);
-        serverConfig.setRegisterAddr("localhost:2181");
-        serverConfig.setRegisterType("zookeeper");
-        serverConfig.setApplicationName("easy-rpc-server");
-        serverConfig.setServerSerialize("kryo");
-        serverConfig.setServerQueueSize(5000);
-        serverConfig.setServerBizThreadNums(16);
-        serverConfig.setMaxConnections(512);
-        serverConfig.setMaxServerRequestData(1000);
-        SERVER_CONFIG = serverConfig;
+        SERVER_CONFIG = PropertiesBootstrap.loadServerConfigFromLocal();
     }
 
     /**
@@ -186,7 +176,9 @@ public class Server {
         url.addParameter("group", String.valueOf(serviceWrapper.getGroup()));
         url.addParameter("limit", String.valueOf(serviceWrapper.getLimit()));
         PROVIDER_URL_SET.add(url);
-        SERVER_SERVICE_SEMAPHORE_MAP.put(interfaceClass.getName(), new ServerServiceSemaphoreWrapper(serviceWrapper.getLimit()));
+        if (serviceWrapper.getLimit() > 0) {
+            SERVER_SERVICE_SEMAPHORE_MAP.put(interfaceClass.getName(), new ServerServiceSemaphoreWrapper(serviceWrapper.getLimit()));
+        }
         if (CommonUtil.isNotEmpty(serviceWrapper.getServiceToken())) {
             PROVIDER_SERVICE_WRAPPER_MAP.put(interfaceClass.getName(), serviceWrapper);
         }

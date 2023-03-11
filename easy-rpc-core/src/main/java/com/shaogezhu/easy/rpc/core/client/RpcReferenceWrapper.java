@@ -38,7 +38,7 @@ public class RpcReferenceWrapper<T> {
     }
 
     public String getTimeOut() {
-        return (String) (attatchments.get("timeOut"));
+        return String.valueOf(attatchments.getOrDefault("timeOut",""));
     }
     public boolean isAsync(){
         return Boolean.parseBoolean(String.valueOf(attatchments.get("async")));

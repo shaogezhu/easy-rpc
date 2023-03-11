@@ -1,2 +1,4 @@
 serverLogFilterImpl=com.shaogezhu.easy.rpc.core.filter.server.ServerLogFilterImpl
 serverTokenFilterImpl=com.shaogezhu.easy.rpc.core.filter.server.ServerTokenFilterImpl
+serverServiceBeforeLimitFilterImpl=com.shaogezhu.easy.rpc.core.filter.server.ServerServiceBeforeLimitFilterImpl
+serverServiceAfterLimitFilterImpl=com.shaogezhu.easy.rpc.core.filter.server.ServerServiceAfterLimitFilterImpl

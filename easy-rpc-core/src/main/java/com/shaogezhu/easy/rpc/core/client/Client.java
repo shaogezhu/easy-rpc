@@ -5,7 +5,7 @@ import com.shaogezhu.easy.rpc.core.common.RpcDecoder;
 import com.shaogezhu.easy.rpc.core.common.RpcEncoder;
 import com.shaogezhu.easy.rpc.core.common.RpcInvocation;
 import com.shaogezhu.easy.rpc.core.common.RpcProtocol;
-import com.shaogezhu.easy.rpc.core.common.config.ClientConfig;
+import com.shaogezhu.easy.rpc.core.common.config.PropertiesBootstrap;
 import com.shaogezhu.easy.rpc.core.common.event.RpcListenerLoader;
 import com.shaogezhu.easy.rpc.core.common.utils.CommonUtil;
 import com.shaogezhu.easy.rpc.core.filter.ClientFilter;
@@ -33,9 +33,15 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 
-import static com.shaogezhu.easy.rpc.core.common.cache.CommonClientCache.*;
+import static com.shaogezhu.easy.rpc.core.common.cache.CommonClientCache.CLIENT_CONFIG;
+import static com.shaogezhu.easy.rpc.core.common.cache.CommonClientCache.CLIENT_FILTER_CHAIN;
+import static com.shaogezhu.easy.rpc.core.common.cache.CommonClientCache.CLIENT_SERIALIZE_FACTORY;
+import static com.shaogezhu.easy.rpc.core.common.cache.CommonClientCache.EXTENSION_LOADER;
+import static com.shaogezhu.easy.rpc.core.common.cache.CommonClientCache.ROUTER;
+import static com.shaogezhu.easy.rpc.core.common.cache.CommonClientCache.SEND_QUEUE;
+import static com.shaogezhu.easy.rpc.core.common.cache.CommonClientCache.SUBSCRIBE_SERVICE_LIST;
+import static com.shaogezhu.easy.rpc.core.common.cache.CommonClientCache.URL_MAP;
 import static com.shaogezhu.easy.rpc.core.common.constants.RpcConstants.DEFAULT_DECODE_CHAR;
-import static com.shaogezhu.easy.rpc.core.common.constants.RpcConstants.DEFAULT_TIMEOUT;
 import static com.shaogezhu.easy.rpc.core.spi.ExtensionLoader.EXTENSION_LOADER_CLASS_CACHE;
 
 /**
@@ -122,16 +128,7 @@ public class Client {
     }
 
     public void initClientConfig() {
-        ClientConfig clientConfig = new ClientConfig();
-        clientConfig.setRegisterAddr("localhost:2181");
-        clientConfig.setRegisterType("zookeeper");
-        clientConfig.setApplicationName("easy-rpc-client");
-        clientConfig.setProxyType("jdk");
-        clientConfig.setRouterStrategy("random");
-        clientConfig.setClientSerialize("kryo");
-        clientConfig.setTimeOut(DEFAULT_TIMEOUT);
-        clientConfig.setMaxServerRespDataSize(1000);
-        CLIENT_CONFIG = clientConfig;
+        CLIENT_CONFIG = PropertiesBootstrap.loadClientConfigFromLocal();
     }
 
     /**
@@ -244,15 +241,15 @@ public class Client {
         rpcReferenceWrapper1.setTimeOut(CLIENT_CONFIG.getTimeOut());
         DataService dataService = rpcReference.get(rpcReferenceWrapper1);
         //调用远程方法
-//        List<String> list = dataService.getList();
-//        System.out.println(list);
-//
-//        for (int i = 100; i < 105; ++i) {
-//            Thread.sleep(1000);
-//            String msg = i+":msg from client.";
-//            String s = dataService.sendData(msg);
-//            System.out.println(i+":"+s);
-//        }
+        List<String> list = dataService.getList();
+        System.out.println(list);
+
+        for (int i = 100; i < 105; ++i) {
+            Thread.sleep(1000);
+            String msg = i+":msg from client.";
+            String s = dataService.sendData(msg);
+            System.out.println(i+":"+s);
+        }
 //        dataService.testError();
 //        dataService.testErrorV2();
 

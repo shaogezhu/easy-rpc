@@ -1,5 +1,6 @@
 package com.shaogezhu.easy.rpc.core.client;
 
+import com.shaogezhu.easy.rpc.core.common.utils.CommonUtil;
 import com.shaogezhu.easy.rpc.core.proxy.ProxyFactory;
 
 import static com.shaogezhu.easy.rpc.core.common.cache.CommonClientCache.CLIENT_CONFIG;
@@ -26,7 +27,7 @@ public class RpcReference {
     }
 
     private void initGlobalRpcReferenceConfig(RpcReferenceWrapper<?> rpcReferenceWrapper) {
-        if (rpcReferenceWrapper.getTimeOut() == null) {
+        if (CommonUtil.isEmpty(rpcReferenceWrapper.getTimeOut())) {
             rpcReferenceWrapper.setTimeOut(CLIENT_CONFIG.getTimeOut());
         }
     }
