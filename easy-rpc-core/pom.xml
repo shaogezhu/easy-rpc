@@ -102,12 +102,6 @@
             <version>${zkClient.version}</version>
         </dependency>
 
-        <dependency>
-            <groupId>com.shaogezhu</groupId>
-            <artifactId>easy-rpc-interface</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
-
     </dependencies>
 
 </project>
