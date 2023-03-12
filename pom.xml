@@ -10,8 +10,8 @@
 
     <modules>
         <module>easy-rpc-core</module>
+        <module>easy-rpc-spring-starter</module>
         <module>rpc-framework-interface</module>
-        <module>rpc-framework-spring-starter</module>
         <module>rpc-framework-provider</module>
         <module>rpc-framework-consumer</module>
     </modules>
