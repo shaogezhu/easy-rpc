@@ -127,12 +127,11 @@ Easy-rpc框架
 4. 引入入依赖
 
    在项目中的`pom`引入刚刚安装的依赖（客户端、服务端都需要引入）
-
    ```xml
    <dependency>
-   	<groupId>com.shaogezhu</groupId>
-   	<artifactId>rpc-framework-spring-starter</artifactId>
-   	<version>1.0-SNAPSHOT</version>
+       <groupId>com.shaogezhu</groupId>
+       <artifactId>easy-rpc-spring-starter</artifactId>
+       <version>1.0-SNAPSHOT</version>
    </dependency>
    ```
 
