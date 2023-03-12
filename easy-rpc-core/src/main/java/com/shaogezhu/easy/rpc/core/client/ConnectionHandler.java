@@ -8,11 +8,18 @@ import com.shaogezhu.easy.rpc.core.registy.URL;
 import com.shaogezhu.easy.rpc.core.router.Selector;
 import io.netty.bootstrap.Bootstrap;
 import io.netty.channel.ChannelFuture;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.ArrayList;
 import java.util.List;
 
-import static com.shaogezhu.easy.rpc.core.common.cache.CommonClientCache.*;
+import static com.shaogezhu.easy.rpc.core.common.cache.CommonClientCache.CLIENT_FILTER_CHAIN;
+import static com.shaogezhu.easy.rpc.core.common.cache.CommonClientCache.CONNECT_MAP;
+import static com.shaogezhu.easy.rpc.core.common.cache.CommonClientCache.ROUTER;
+import static com.shaogezhu.easy.rpc.core.common.cache.CommonClientCache.SERVER_ADDRESS;
+import static com.shaogezhu.easy.rpc.core.common.cache.CommonClientCache.SERVICE_ROUTER_MAP;
+import static com.shaogezhu.easy.rpc.core.common.cache.CommonClientCache.URL_MAP;
 
 /**
  * @Author peng
@@ -20,6 +27,8 @@ import static com.shaogezhu.easy.rpc.core.common.cache.CommonClientCache.*;
  * @description: 按照单一职责的设计原则，将与连接(建立、断开)有关的功能都统一封装在了一起.
  */
 public class ConnectionHandler {
+
+    private static final Logger LOGGER = LoggerFactory.getLogger(ConnectionHandler.class);
 
     /**
      * 核心的连接处理器
@@ -53,7 +62,7 @@ public class ConnectionHandler {
         ChannelFuture channelFuture = bootstrap.connect(ip, port).sync();
         String providerUrlInfo = URL_MAP.get(providerServiceName).get(providerIp);
         ProviderNodeInfo providerNodeInfo = URL.buildUrlFromUrlStr(providerUrlInfo);
-        System.out.println("providerUrlInfo:"+providerUrlInfo);
+        LOGGER.info("与[providerUrlInfo]建立连接"+providerUrlInfo);
         ChannelFutureWrapper channelFutureWrapper = new ChannelFutureWrapper();
         channelFutureWrapper.setChannelFuture(channelFuture);
         channelFutureWrapper.setHost(ip);

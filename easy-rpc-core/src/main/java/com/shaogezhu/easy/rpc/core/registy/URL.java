@@ -80,7 +80,8 @@ public class URL {
         String host = url.getParameters().get("host");
         String port = url.getParameters().get("port");
         String group = url.getParameters().get("group");
-        return new String((url.getApplicationName() + ";" + url.getServiceName() + ";" + host + ":" + port + ";" + System.currentTimeMillis() + ";100;" + group).getBytes(), StandardCharsets.UTF_8);
+        String weight = url.getParameters().get("weight");
+        return new String((url.getApplicationName() + ";" + url.getServiceName() + ";" + host + ":" + port + ";" + System.currentTimeMillis() + ";" + weight + ";" + group).getBytes(), StandardCharsets.UTF_8);
     }
 
     /**
@@ -98,6 +99,7 @@ public class URL {
     /**
      * 将某个节点下的信息转换为一个Provider节点对象
      * 入参格式例如：easy-rpc;com.shaogezhu.interfaces.DataService;192.168.43.227:9093;1643429082637;100;default
+     *
      * @param providerNodeStr
      * @return
      */

@@ -8,11 +8,14 @@ import com.shaogezhu.easy.rpc.core.common.event.RpcNodeUpdateEvent;
 import com.shaogezhu.easy.rpc.core.common.event.RpcUpdateEvent;
 import com.shaogezhu.easy.rpc.core.common.event.data.ProviderNodeInfo;
 import com.shaogezhu.easy.rpc.core.common.event.data.URLChangeWrapper;
+import com.shaogezhu.easy.rpc.core.common.utils.CommonUtil;
 import com.shaogezhu.easy.rpc.core.registy.AbstractRegister;
 import com.shaogezhu.easy.rpc.core.registy.RegistryService;
 import com.shaogezhu.easy.rpc.core.registy.URL;
 import org.apache.zookeeper.WatchedEvent;
 import org.apache.zookeeper.Watcher;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.util.HashMap;
 import java.util.List;
@@ -28,12 +31,14 @@ import static com.shaogezhu.easy.rpc.core.common.cache.CommonServerCache.SERVER_
  */
 public class ZookeeperRegister extends AbstractRegister implements RegistryService {
 
+    private static final Logger LOGGER = LoggerFactory.getLogger(ZookeeperRegister.class);
+
     private final AbstractZookeeperClient zkClient;
 
     private final String ROOT = "/easy-rpc";
 
     public ZookeeperRegister() {
-        String registryAddr = CLIENT_CONFIG!= null ? CLIENT_CONFIG.getRegisterAddr() : SERVER_CONFIG.getRegisterAddr();
+        String registryAddr = CLIENT_CONFIG != null ? CLIENT_CONFIG.getRegisterAddr() : SERVER_CONFIG.getRegisterAddr();
         this.zkClient = new CuratorZookeeperClient(registryAddr);
     }
 
@@ -42,7 +47,7 @@ public class ZookeeperRegister extends AbstractRegister implements RegistryServi
     }
 
     private String getConsumerPath(URL url) {
-        return ROOT + "/" + url.getServiceName() + "/consumer/" + url.getApplicationName() + ":" + url.getParameters().get("host")+":";
+        return ROOT + "/" + url.getServiceName() + "/consumer/" + url.getApplicationName() + ":" + url.getParameters().get("host") + ":";
     }
 
     @Override
@@ -113,10 +118,16 @@ public class ZookeeperRegister extends AbstractRegister implements RegistryServi
         zkClient.watchChildNodeData(newServerNodePath, new Watcher() {
             @Override
             public void process(WatchedEvent watchedEvent) {
-                System.out.println("watchChildNodeData:" + watchedEvent);
                 String path = watchedEvent.getPath();
+                LOGGER.info("[watchChildNodeData] 监听到zk节点下的" + path + "节点数据发生变更");
                 List<String> childrenDataList = zkClient.getChildrenData(path);
                 URLChangeWrapper urlChangeWrapper = new URLChangeWrapper();
+                Map<String, String> nodeDetailInfoMap = new HashMap<>();
+                for (String providerAddress : childrenDataList) {
+                    String nodeDetailInfo = zkClient.getNodeData(path + "/" + providerAddress);
+                    nodeDetailInfoMap.put(providerAddress, nodeDetailInfo);
+                }
+                urlChangeWrapper.setNodeDataUrl(nodeDetailInfoMap);
                 urlChangeWrapper.setProviderUrl(childrenDataList);
                 urlChangeWrapper.setServiceName(path.split("/")[2]);
                 RpcEvent rpcEvent = new RpcUpdateEvent(urlChangeWrapper);
@@ -135,12 +146,16 @@ public class ZookeeperRegister extends AbstractRegister implements RegistryServi
         zkClient.watchNodeData(newServerNodePath, new Watcher() {
             @Override
             public void process(WatchedEvent watchedEvent) {
-                System.out.println("watchNodeDataChange:" + watchedEvent);
                 String path = watchedEvent.getPath();
+                LOGGER.info("[watchNodeDataChange]收到子节点" + path + "数据变化");
                 String nodeData = zkClient.getNodeData(path);
-                ProviderNodeInfo providerNodeInfo = URL.buildUrlFromUrlStr(nodeData);
-                RpcEvent rpcEvent = new RpcNodeUpdateEvent(providerNodeInfo);
-                RpcListenerLoader.sendEvent(rpcEvent);
+                if (CommonUtil.isEmpty(nodeData)) {
+                    LOGGER.error("{} node data is null", path);
+                }else {
+                    ProviderNodeInfo providerNodeInfo = URL.buildUrlFromUrlStr(nodeData);
+                    RpcEvent rpcEvent = new RpcNodeUpdateEvent(providerNodeInfo);
+                    RpcListenerLoader.sendEvent(rpcEvent);
+                }
                 watchNodeDataChange(newServerNodePath);
             }
         });

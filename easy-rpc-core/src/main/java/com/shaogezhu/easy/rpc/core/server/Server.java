@@ -172,6 +172,7 @@ public class Server {
         url.addParameter("port", String.valueOf(SERVER_CONFIG.getPort()));
         url.addParameter("group", String.valueOf(serviceWrapper.getGroup()));
         url.addParameter("limit", String.valueOf(serviceWrapper.getLimit()));
+        url.addParameter("weight", String.valueOf(serviceWrapper.getWeight()));
         PROVIDER_URL_SET.add(url);
         if (serviceWrapper.getLimit() > 0) {
             SERVER_SERVICE_SEMAPHORE_MAP.put(interfaceClass.getName(), new ServerServiceSemaphoreWrapper(serviceWrapper.getLimit()));

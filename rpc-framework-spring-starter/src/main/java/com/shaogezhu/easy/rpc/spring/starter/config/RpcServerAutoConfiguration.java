@@ -44,6 +44,7 @@ public class RpcServerAutoConfiguration implements InitializingBean, Application
             ServiceWrapper dataServiceServiceWrapper = new ServiceWrapper(bean, easyRpcService.group());
             dataServiceServiceWrapper.setServiceToken(easyRpcService.serviceToken());
             dataServiceServiceWrapper.setLimit(easyRpcService.limit());
+            dataServiceServiceWrapper.setWeight(easyRpcService.weight());
             server.registyService(dataServiceServiceWrapper);
             LOGGER.info(">>>>>>>>>>>>>>> [easy-rpc] {} export success! >>>>>>>>>>>>>>> ", beanName);
         }

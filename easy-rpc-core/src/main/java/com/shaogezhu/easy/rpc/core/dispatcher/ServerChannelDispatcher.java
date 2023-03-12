@@ -38,7 +38,7 @@ public class ServerChannelDispatcher {
         executorService = new ThreadPoolExecutor(bizThreadNums, bizThreadNums,
                 3L, TimeUnit.SECONDS,
                 new ArrayBlockingQueue<>(512),
-                new ThreadFactoryBuilder().setNameFormat("ExecutorService-pool-%d").build());
+                new ThreadFactoryBuilder().setNameFormat("Easy-rpc-pool-%d").build());
     }
 
     public void add(ServerChannelReadData serverChannelReadData) {
