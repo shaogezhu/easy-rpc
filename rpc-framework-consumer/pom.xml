@@ -27,7 +27,7 @@
 
         <dependency>
             <groupId>com.shaogezhu</groupId>
-            <artifactId>rpc-framework-spring-starter</artifactId>
+            <artifactId>easy-rpc-spring-starter</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
 
