@@ -21,12 +21,6 @@
 
         <dependency>
             <groupId>com.shaogezhu</groupId>
-            <artifactId>easy-rpc-core</artifactId>
-            <version>1.0-SNAPSHOT</version>
-        </dependency>
-
-        <dependency>
-            <groupId>com.shaogezhu</groupId>
             <artifactId>rpc-framework-interface</artifactId>
             <version>1.0-SNAPSHOT</version>
         </dependency>
@@ -35,12 +29,6 @@
             <groupId>com.shaogezhu</groupId>
             <artifactId>rpc-framework-spring-starter</artifactId>
             <version>1.0-SNAPSHOT</version>
-            <exclusions>
-                <exclusion>
-                    <groupId>*</groupId>
-                    <artifactId>*</artifactId>
-                </exclusion>
-            </exclusions>
         </dependency>
 
         <dependency>
