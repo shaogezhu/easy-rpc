@@ -14,6 +14,18 @@
 
 ## 功能&设计🚀
 
+### 目录结构
+
+```txt
+Easy-rpc框架
+├─easy-rpc-core	--rpc核心实现类
+├─easy-rpc-spring-starter	--组件的spring-starter接入类
+├─rpc-framework-consumer	--[示例]服务消费者
+├─rpc-framework-interface	--存放服务接口
+└─rpc-framework-provider	--[示例]服务提供者
+```
+
+
 ### 功能：
 
 - 简单易学的代码和框架，**在代码中含有大量注解**
@@ -42,22 +54,6 @@
 - **协议层**：负责请求数据的转码封装等作用；
 - **注册中心**：关注服务的上下线，以及一些权重，配置动态调整等功能；
 - **容错层**：当服务调用出现失败之后需要有容错层的兜底辅助；
-
-
-
-
-
-## 目录结构说明
-
-```txt
-Easy-rpc框架
-├─easy-rpc-core	--rpc核心实现类
-├─easy-rpc-spring-starter	--组件的spring-starter接入类
-├─rpc-framework-consumer	--[示例]服务消费者
-├─rpc-framework-interface	--存放服务接口
-└─rpc-framework-provider	--[示例]服务提供者
-```
-
 
 
 
