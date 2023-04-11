@@ -1,2 +1,0 @@
-random=com.shaogezhu.easy.rpc.core.router.RandomRouterImpl
-rotate=com.shaogezhu.easy.rpc.core.router.RotateRouterImpl
